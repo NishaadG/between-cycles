@@ -38,4 +38,13 @@ describe("checkIngredients", () => {
   it("marks AHAs as caution, not avoid", () => {
     expect(checkIngredients("Aqua, Lactic Acid, Urea").overall).toBe("caution");
   });
+
+  it("handles a transcribed label in capitals with slashes", () => {
+    const label =
+      "AQUA/WATER, GLYCERIN, CETEARYL ALCOHOL, ALCOHOL DENAT., NIACINAMIDE, SALICYLIC ACID, DIMETHICONE, SODIUM HYALURONATE, PARFUM/FRAGRANCE, LIMONENE, LINALOOL, PHENOXYETHANOL";
+    const r = checkIngredients(label);
+    expect(r.overall).toBe("avoid");
+    expect(r.findings.map((f) => f.rule.id)).toEqual(expect.arrayContaining(["drying-alcohol", "salicylic", "fragrance", "humectant"]));
+    expect(r.findings.find((f) => f.rule.id === "drying-alcohol")!.matched).toEqual(["alcohol denat"]);
+  });
 });

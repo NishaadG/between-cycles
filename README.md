@@ -60,7 +60,7 @@ npm run dev
 npm test
 ```
 
-Optional environment variables: `GEMINI_API_KEY` (enables label photos; `GEMINI_MODEL` defaults to `gemini-2.5-flash`), `YOUCAM_API_BASE` (default `https://yce-api-01.makeupar.com`), `RATE_LIMIT_PER_HOUR` (default 30 per IP), `UNIT_FLOOR` (default 40).
+Optional environment variables: `GEMINI_API_KEY` (enables label photos; `GEMINI_MODELS` is a comma-separated fallback list, default `gemini-flash-latest,gemini-2.5-flash,gemini-flash-lite-latest`), `YOUCAM_API_BASE` (default `https://yce-api-01.makeupar.com`), `RATE_LIMIT_PER_HOUR` (default 30 per IP), `UNIT_FLOOR` (default 40).
 
 Built with Next.js 16, React 19, Tailwind CSS 4, Recharts and idb-keyval.
 

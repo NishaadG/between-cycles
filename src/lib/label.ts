@@ -5,7 +5,11 @@ import "server-only";
 // in ingredients.ts, after the person has checked the transcription.
 
 const KEY = process.env.GEMINI_API_KEY || "";
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+// Free-tier quotas are per model, so fall back through several.
+const MODELS = (process.env.GEMINI_MODELS || "gemini-flash-latest,gemini-2.5-flash,gemini-flash-lite-latest")
+  .split(",")
+  .map((m) => m.trim())
+  .filter(Boolean);
 
 export const labelReaderAvailable = () => KEY.length > 0;
 
@@ -33,7 +37,23 @@ const SCHEMA = {
 };
 
 export async function readLabel(bytes: Buffer, mimeType: string): Promise<LabelReading> {
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
+  let lastError: unknown;
+  for (const model of MODELS) {
+    try {
+      return await readWith(model, bytes, mimeType);
+    } catch (e) {
+      lastError = e;
+      // Only quota and server errors are worth retrying on another model.
+      if (!(e instanceof RetryableError)) throw e;
+    }
+  }
+  throw lastError;
+}
+
+class RetryableError extends Error {}
+
+async function readWith(model: string, bytes: Buffer, mimeType: string): Promise<LabelReading> {
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-goog-api-key": KEY },
     body: JSON.stringify({
@@ -44,7 +64,8 @@ export async function readLabel(bytes: Buffer, mimeType: string): Promise<LabelR
   });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    throw new Error(`label reader ${res.status}: ${body.slice(0, 200)}`);
+    const msg = `label reader ${model} ${res.status}: ${body.slice(0, 200)}`;
+    throw res.status === 429 || res.status >= 500 || res.status === 404 ? new RetryableError(msg) : new Error(msg);
   }
   const json = await res.json();
   const text: string = json.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
