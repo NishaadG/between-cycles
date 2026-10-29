@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowDownRight, ArrowRight, ArrowUpRight, Camera, Minus } from "lucide-react";
+import { ArrowDownRight, ArrowRight, ArrowUpRight, BellRing, Camera, Minus } from "lucide-react";
 import { Shell } from "@/components/Shell";
 import { Disclaimer, Spinner, guidanceTitle } from "@/components/ui";
 import { WATCHED, concernInfo } from "@/lib/concerns";
 import { MIN_BASELINE_SCANS, cyclePosition, type Change } from "@/lib/stats";
+import { downloadReminders } from "@/lib/reminders";
 import { resetAll, seedDemo } from "@/lib/store";
 import { useJourney } from "@/lib/useJourney";
 
@@ -122,6 +123,8 @@ export default function Today() {
         </>
       )}
 
+      <Reminders />
+
       <section className="mt-8 grid gap-3 sm:grid-cols-2">
         <Link href="/products" className="card p-4 hover:border-primary">
           <h3 className="font-semibold">Is this product okay?</h3>
@@ -184,5 +187,36 @@ function ChangeTile({ change }: { change: Change }) {
         {change.status === "stable" ? "within your normal range" : change.status === "worse" ? "above your normal" : "better than baseline"}
       </p>
     </div>
+  );
+}
+
+function Reminders() {
+  const [every, setEvery] = useState(3);
+  const [hour, setHour] = useState(9);
+  return (
+    <section className="card mt-6 flex flex-wrap items-center gap-3 p-4">
+      <BellRing className="text-primary" size={20} />
+      <div className="min-w-48 flex-1">
+        <p className="text-sm font-semibold">Check-in reminders</p>
+        <p className="text-xs text-muted">Adds a repeating event to your phone&apos;s calendar. No account needed.</p>
+      </div>
+      <select className="field !w-auto !py-1.5 text-sm" value={every} onChange={(e) => setEvery(Number(e.target.value))} aria-label="How often">
+        {[2, 3, 4, 7].map((d) => (
+          <option key={d} value={d}>
+            every {d} days
+          </option>
+        ))}
+      </select>
+      <select className="field !w-auto !py-1.5 text-sm" value={hour} onChange={(e) => setHour(Number(e.target.value))} aria-label="Time">
+        {[7, 8, 9, 10, 12, 18, 20].map((h) => (
+          <option key={h} value={h}>
+            {h}:00
+          </option>
+        ))}
+      </select>
+      <button className="btn btn-ghost !py-1.5 text-sm" onClick={() => downloadReminders(every, hour)}>
+        Add to calendar
+      </button>
+    </section>
   );
 }

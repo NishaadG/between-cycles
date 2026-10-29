@@ -97,7 +97,7 @@ function ScanFlow() {
         }
       />
 
-      {step === "capture" && <Camera onPhoto={onPhoto} />}
+      {step === "capture" && <Camera onPhoto={onPhoto} ghost={j.baselineScans[0]?.photo} />}
 
       {step === "review" && photo && (
         <div className="card p-5">
