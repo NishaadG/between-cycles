@@ -15,7 +15,7 @@ function clientIp(req: Request): string {
   return req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip") || "local";
 }
 
-export async function guard(req: Request): Promise<NextResponse | null> {
+export async function guard(req: Request, opts: { checkUnits?: boolean } = {}): Promise<NextResponse | null> {
   const ip = clientIp(req);
   const now = Date.now();
   const recent = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
@@ -28,6 +28,7 @@ export async function guard(req: Request): Promise<NextResponse | null> {
   recent.push(now);
   hits.set(ip, recent);
 
+  if (opts.checkUnits === false) return null;
   const units = await unitBalance();
   if (units !== null && units < UNIT_FLOOR) {
     return NextResponse.json(

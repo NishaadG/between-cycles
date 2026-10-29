@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { CheckCircle2, CircleAlert, OctagonX } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Camera, CheckCircle2, CircleAlert, OctagonX } from "lucide-react";
 import { Shell } from "@/components/Shell";
 import { Cite, PageTitle } from "@/components/ui";
+import { preparePhoto } from "@/lib/image";
 import { EXAMPLES, checkIngredients, type Verdict } from "@/lib/ingredients";
 import { useJourney } from "@/lib/useJourney";
 
@@ -22,6 +23,38 @@ const OVERALL = {
 export default function Products() {
   const { profile } = useJourney();
   const [text, setText] = useState("");
+  const [canRead, setCanRead] = useState(false);
+  const [reading, setReading] = useState(false);
+  const [readInfo, setReadInfo] = useState<{ name: string; note: string; legible: boolean } | null>(null);
+  const [readError, setReadError] = useState("");
+
+  useEffect(() => {
+    fetch("/api/label")
+      .then((r) => r.json())
+      .then((d) => setCanRead(!!d.available))
+      .catch(() => {});
+  }, []);
+
+  async function snap(file: File) {
+    setReading(true);
+    setReadError("");
+    setReadInfo(null);
+    try {
+      const { blob } = await preparePhoto(file);
+      const body = new FormData();
+      body.append("photo", blob, "label.jpg");
+      const res = await fetch("/api/label", { method: "POST", body });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error?.message ?? "Couldn't read that label.");
+      if (!json.ingredients.length) throw new Error(json.note || "No ingredient list found in that photo.");
+      setText(json.ingredients.join(", "));
+      setReadInfo({ name: json.productName, note: json.note, legible: json.legible });
+    } catch (e) {
+      setReadError(e instanceof Error ? e.message : "Couldn't read that label.");
+    } finally {
+      setReading(false);
+    }
+  }
   const result = useMemo(() => (text.trim() ? checkIngredients(text) : null), [text]);
   const order: Verdict[] = ["avoid", "caution", "helpful"];
 
@@ -29,10 +62,36 @@ export default function Products() {
     <Shell profile={profile}>
       <PageTitle
         title="Is this product okay now?"
-        subtitle="Paste the ingredient list (INCI) from the pack or the shop page. Every flag below is a fixed rule with a published source."
+        subtitle="Photograph the ingredient list, or paste it from the shop page. Every flag below is a fixed rule with a published source."
       />
 
       <div className="card p-5">
+        {canRead && (
+          <div className="mb-4">
+            <label className={`btn btn-primary w-full cursor-pointer sm:w-auto ${reading ? "pointer-events-none opacity-60" : ""}`}>
+              <Camera size={18} /> {reading ? "Reading the label…" : "Snap the ingredient list"}
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) snap(f);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            {readInfo && (
+              <p className={`mt-3 rounded-xl p-3 text-sm ${readInfo.legible ? "bg-primary-soft" : "bg-discuss-soft text-discuss"}`}>
+                {readInfo.name && <strong>{readInfo.name}: </strong>}
+                Read by AI from your photo. Check it matches the label before relying on the result
+                {readInfo.legible ? "." : `. ${readInfo.note || "Part of the list may be missing."}`}
+              </p>
+            )}
+            {readError && <p className="mt-3 text-sm text-discuss">{readError}</p>}
+          </div>
+        )}
         <textarea
           className="field min-h-32 font-mono text-sm"
           placeholder="Aqua, Glycerin, Cetearyl Alcohol, Parfum…"

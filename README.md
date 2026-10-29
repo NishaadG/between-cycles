@@ -14,7 +14,8 @@ Between Cycles turns a phone selfie into a measurement, compares it with the per
 | **Check-ins** | Each scan is compared with the baseline. A change is flagged only when it is bigger than the person's own measurement noise (95% minimal detectable change). |
 | **Symptoms** | Each check-in asks about things a photo can't see (fever, blisters, signs of infection, pain). Any of these switches the app to "Contact your care team today", whatever the scores say. |
 | **Care-team report** | A printable page with the change table, charts across treatment cycles, baseline vs latest photos with detection overlays, recent symptoms and questions to ask. |
-| **Product check** | Paste an ingredient list. Ten fixed rules, each citing published patient guidance (NHS, Macmillan, MASCC, U.S. Pharmacist), flag what to avoid, what to ask about and what helps. No AI guessing. |
+| **Product check** | Photograph the ingredient list (a vision model transcribes it, the person checks it) or paste it. Ten fixed rules, each citing published patient guidance (NHS, Macmillan, MASCC, U.S. Pharmacist), flag what to avoid, what to ask about and what helps. No AI guessing. |
+| **Reminders and framing** | A calendar file adds repeating check-in reminders with no account. During capture, the first baseline photo is shown faintly over the camera so every scan is framed the same way. |
 | **Hair prep** | Preview shorter hairstyles, or no hair at all, on your own face before hair loss begins, plus hats. |
 | **Private** | No accounts. Photos and history stay in the browser (IndexedDB). The server only relays a photo to the analysis API and keeps nothing. |
 
@@ -59,7 +60,7 @@ npm run dev
 npm test
 ```
 
-Optional environment variables: `YOUCAM_API_BASE` (default `https://yce-api-01.makeupar.com`), `RATE_LIMIT_PER_HOUR` (default 30 per IP), `UNIT_FLOOR` (default 40).
+Optional environment variables: `GEMINI_API_KEY` (enables label photos; `GEMINI_MODEL` defaults to `gemini-2.5-flash`), `YOUCAM_API_BASE` (default `https://yce-api-01.makeupar.com`), `RATE_LIMIT_PER_HOUR` (default 30 per IP), `UNIT_FLOOR` (default 40).
 
 Built with Next.js 16, React 19, Tailwind CSS 4, Recharts and idb-keyval.
 

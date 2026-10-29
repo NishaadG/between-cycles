@@ -146,7 +146,8 @@ export default function Method() {
         <Section title="Product checks">
           <p>
             The ingredient checker is a fixed list of {RULES.length} rules, not an AI model, so the same label always gets the
-            same answer. Fatty alcohols (cetyl, cetearyl), benzyl alcohol and sunscreen salicylates are deliberately excluded
+            same answer. When a label is photographed, a vision model only transcribes the list; the person checks the
+            transcription, and the rules decide. Fatty alcohols (cetyl, cetearyl), benzyl alcohol and sunscreen salicylates are deliberately excluded
             from the alcohol and acid rules.
           </p>
           <ul className="space-y-2">
