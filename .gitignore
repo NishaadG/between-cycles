@@ -44,3 +44,6 @@ next-env.d.ts
 private-samples/
 .yc-cache/
 AGENTS.md
+
+.vercel
+.env*
