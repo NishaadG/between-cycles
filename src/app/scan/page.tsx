@@ -7,7 +7,7 @@ import { AlertCircle, RotateCcw } from "lucide-react";
 import { Camera } from "@/components/Camera";
 import { MaskViewer } from "@/components/MaskViewer";
 import { Shell } from "@/components/Shell";
-import { GuidanceBadge, PageTitle, Spinner, guidanceTitle } from "@/components/ui";
+import { PageTitle, Spinner, guidanceTitle } from "@/components/ui";
 import { CONCERNS, WATCHED } from "@/lib/concerns";
 import { photoProblems, preparePhoto, type PreparedPhoto } from "@/lib/image";
 import { MIN_BASELINE_SCANS, SYMPTOMS, compare, computeBaseline, guidance, type SymptomId } from "@/lib/stats";
@@ -214,8 +214,7 @@ function Result({ scan, all }: { scan: Scan; all: Scan[] }) {
 
       {g && (
         <div className={`rounded-[1.25rem] p-5 ${g.level === "urgent" ? "bg-urgent-soft" : g.level === "discuss" ? "bg-discuss-soft" : "bg-steady-soft"}`}>
-          <GuidanceBadge level={g.level} />
-          <h2 className="mt-2 font-serif text-xl font-semibold">{guidanceTitle(g.level)}</h2>
+          <h2 className="font-serif text-xl font-semibold">{guidanceTitle(g.level)}</h2>
           {g.reasons.length > 0 && (
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
               {g.reasons.map((r) => (

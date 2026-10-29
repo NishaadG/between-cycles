@@ -2,6 +2,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import sharp from "sharp";
 import { CONCERN_IDS, concernLevel, type ConcernId } from "./concerns";
 import type { ConcernResult, SkinAnalysis, TryOnKind, TryOnResult } from "./types";
 
@@ -102,13 +103,16 @@ async function runTask<R>(route: string, body: Record<string, unknown>, timeoutM
   throw new YouCamError("timeout", "The analysis took too long. Please try again.", 504);
 }
 
-async function toDataUrl(url: string): Promise<string | undefined> {
+// Downloads a result image (URLs expire) and shrinks it so it can be kept
+// on the device. Masks stay PNG to keep their alpha channel.
+async function toDataUrl(url: string, maxSide = 900): Promise<string | undefined> {
   try {
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) return undefined;
-    const type = res.headers.get("content-type") || "image/png";
-    const buf = Buffer.from(await res.arrayBuffer());
-    return `data:${type};base64,${buf.toString("base64")}`;
+    const img = sharp(Buffer.from(await res.arrayBuffer())).resize(maxSide, maxSide, { fit: "inside", withoutEnlargement: true });
+    const isPng = (res.headers.get("content-type") || "").includes("png") || url.split("?")[0].endsWith(".png");
+    const buf = isPng ? await img.png({ compressionLevel: 9, palette: true }).toBuffer() : await img.jpeg({ quality: 88 }).toBuffer();
+    return `data:image/${isPng ? "png" : "jpeg"};base64,${buf.toString("base64")}`;
   } catch {
     return undefined;
   }
@@ -229,7 +233,7 @@ export async function tryOn(input: TryOnInput): Promise<TryOnResult> {
       body.style = input.style ?? "random";
     }
     const results = await runTask<{ url: string }>(TRYON_ROUTE[input.kind], body, 150_000);
-    const imageDataUrl = await toDataUrl(results.url);
+    const imageDataUrl = await toDataUrl(results.url, 1200);
     if (!imageDataUrl) throw new YouCamError("error_download", "Couldn't fetch the try-on result.");
     return { imageDataUrl, mode: "live" as const };
   });
@@ -239,28 +243,35 @@ export interface HairTemplate {
   id: string;
   title: string;
   thumbnail: string;
+  category: string;
 }
 
 export async function hairTemplates(): Promise<HairTemplate[]> {
   if (!isLive()) return [];
   return cached("hair-templates", async () => {
-    // Response shape isn't fully documented; accept the common field names.
-    const data = await api<Record<string, unknown>>("GET", "/s2s/v2.1/task/template/hair-transfer?page_size=60");
-    const list = (data.templates ?? data.results ?? data.items ?? []) as Record<string, unknown>[];
-    return list.map((t) => ({
-      id: String(t.id ?? t.template_id ?? ""),
-      title: String(t.title ?? t.name ?? ""),
-      thumbnail: String(t.thumb ?? t.thumbnail ?? t.thumb_url ?? t.url ?? ""),
-    }));
+    const out: HairTemplate[] = [];
+    let token = "";
+    for (let page = 0; page < 10; page++) {
+      const data = await api<{ next_token?: string; templates: { id: string; title: string; thumb: string; category_name?: string }[] }>(
+        "GET",
+        `/s2s/v2.1/task/template/hair-transfer?page_size=20${token ? `&starting_token=${token}` : ""}`,
+      );
+      out.push(...data.templates.map((t) => ({ id: t.id, title: t.title, thumbnail: t.thumb, category: t.category_name ?? "" })));
+      if (!data.next_token || data.templates.length === 0) break;
+      token = data.next_token;
+    }
+    return out;
   });
 }
 
 export async function unitBalance(): Promise<number | null> {
   if (!isLive()) return null;
   try {
-    const data = await api<Record<string, unknown>>("GET", "/s2s/v1.0/client/credit");
-    const n = Number(Array.isArray(data) ? (data[0] as Record<string, unknown>)?.amount : data.amount ?? data.credit);
-    return Number.isFinite(n) ? n : null;
+    // This endpoint returns { results: [{ amount }, ...] } rather than { data }.
+    const res = await fetch(`${BASE}/s2s/v1.0/client/credit`, { headers: { Authorization: `Bearer ${KEY}` }, cache: "no-store" });
+    const json = (await res.json()) as { results?: { amount_dec?: number; amount?: number }[] };
+    if (!json.results) return null;
+    return json.results.reduce((a, r) => a + Number(r.amount_dec ?? r.amount ?? 0), 0);
   } catch {
     return null;
   }

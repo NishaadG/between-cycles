@@ -10,55 +10,60 @@ import { addTryOn, listTryOns, newId, type SavedTryOn } from "@/lib/store";
 import type { TryOnKind } from "@/lib/types";
 import { useJourney } from "@/lib/useJourney";
 
-const STYLES: Record<"scarf" | "hat", { id: string; label: string }[]> = {
-  scarf: [
-    { id: "random", label: "Surprise me" },
-    { id: "style_modern_chic", label: "Modern chic" },
-    { id: "style_french_elegance", label: "French elegance" },
-    { id: "style_light_luxury", label: "Light luxury" },
-    { id: "style_cottagecore", label: "Cottagecore" },
-    { id: "style_bohemian", label: "Bohemian" },
-  ],
-  hat: [
-    { id: "random", label: "Surprise me" },
-    { id: "style_warm_cozy", label: "Warm & cozy" },
-    { id: "style_urban_fashion", label: "Urban" },
-    { id: "style_sporty_casual", label: "Sporty casual" },
-    { id: "style_vacation_casual", label: "Vacation" },
-    { id: "style_bohemian", label: "Bohemian" },
-  ],
-};
-
-const TABS: { id: TryOnKind; label: string; hint: string; shop: string }[] = [
-  { id: "scarf", label: "Headscarves", hint: "Upload a photo of a scarf you own or like.", shop: "soft cotton head scarf for hair loss" },
-  { id: "hat", label: "Hats & beanies", hint: "Upload a photo of a hat or beanie.", shop: "soft cotton chemo beanie" },
-  { id: "hair", label: "Shorter styles", hint: "Some people find going shorter first makes the change feel more in their control.", shop: "" },
+// Hat try-on generates a styled full-body photo; hairstyle transfer keeps
+// the person's own photo and face, so it leads.
+const HAT_STYLES = [
+  { id: "random", label: "Surprise me" },
+  { id: "style_warm_cozy", label: "Warm & cozy" },
+  { id: "style_urban_fashion", label: "Urban" },
+  { id: "style_sporty_casual", label: "Sporty casual" },
+  { id: "style_vacation_casual", label: "Vacation" },
+  { id: "style_bohemian", label: "Bohemian" },
 ];
 
-const SAMPLES: Record<"scarf" | "hat", { src: string; label: string }[]> = {
-  scarf: [
-    { src: "/samples/scarf-floral.jpg", label: "Floral cotton" },
-    { src: "/samples/scarf-magenta.jpg", label: "Printed silk" },
-    { src: "/samples/scarf-bandana.jpg", label: "Bandana" },
-  ],
-  hat: [{ src: "/samples/hat-beanie.jpg", label: "Soft beanie" }],
-};
+const TABS: { id: TryOnKind; label: string; hint: string; shop: string }[] = [
+  {
+    id: "hair",
+    label: "Shorter styles",
+    hint: "Some people find going shorter first makes the change feel more in their control. The last option previews no hair at all, if you want to see it.",
+    shop: "",
+  },
+  {
+    id: "hat",
+    label: "Hats & beanies",
+    hint: "Upload a photo of a hat or beanie. This creates a styled photo of you in a new outfit and setting, so expect differences.",
+    shop: "soft cotton chemo beanie",
+  },
+];
+
+const HAT_SAMPLES = [{ src: "/samples/hat-beanie.jpg", label: "Soft beanie" }];
 
 interface Template {
   id: string;
   title: string;
   thumbnail: string;
+  category: string;
 }
+
+// Shorter, natural-colour cuts are the ones people consider before hair loss.
+const SHORT = /pixie|bixie|buzz|crew|crop|short|bob|fade|bald/i;
+const LOUD = /pink|rainbow|neon|violet|lavender|purple|steel|leopard|split|highlight|blue/i;
+const curated = (all: Template[]) =>
+  all
+    .filter((t) => SHORT.test(t.title) && !LOUD.test(t.title))
+    // "Bald" last: an optional, gentle preview rather than a style suggestion.
+    .sort((a, b) => Number(/bald/i.test(a.title)) - Number(/bald/i.test(b.title)));
 
 export default function Prepare() {
   const { profile } = useJourney();
   const [selfie, setSelfie] = useState<PreparedPhoto | null>(null);
-  const [tab, setTab] = useState<TryOnKind>("scarf");
+  const [tab, setTab] = useState<TryOnKind>("hair");
   const [ref, setRef] = useState<{ blob: Blob; url: string } | null>(null);
   const [style, setStyle] = useState("random");
   const [gender, setGender] = useState<"female" | "male">("female");
   const [templates, setTemplates] = useState<Template[] | null>(null);
   const [templateId, setTemplateId] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<SavedTryOn | null>(null);
@@ -101,7 +106,7 @@ export default function Prepare() {
       const label =
         tab === "hair"
           ? (templates?.find((t) => t.id === templateId)?.title ?? "Shorter style")
-          : `${current.label.replace(/s$/, "")} · ${STYLES[tab].find((s) => s.id === style)?.label}`;
+          : `${current.label.replace(/s$/, "")} · ${HAT_STYLES.find((s) => s.id === style)?.label}`;
       const saved: SavedTryOn = { id: newId(), kind: tab, label, image: json.imageDataUrl, createdAt: new Date().toISOString() };
       setResult(saved);
       if (json.mode === "live") {
@@ -160,7 +165,7 @@ export default function Prepare() {
 
             {tab !== "hair" && (
               <div className="mt-4 flex flex-wrap gap-2">
-                {SAMPLES[tab].map((sm) => (
+                {HAT_SAMPLES.map((sm) => (
                   <button
                     key={sm.src}
                     title={sm.label}
@@ -200,7 +205,7 @@ export default function Prepare() {
                   <label className="block">
                     <span className="mb-1 block text-sm font-medium">Styling</span>
                     <select className="field" value={style} onChange={(e) => setStyle(e.target.value)}>
-                      {STYLES[tab].map((s) => (
+                      {HAT_STYLES.map((s) => (
                         <option key={s.id} value={s.id}>
                           {s.label}
                         </option>
@@ -223,8 +228,9 @@ export default function Prepare() {
             ) : templates.length === 0 ? (
               <p className="mt-4 rounded-xl bg-surface-2 p-3 text-sm text-muted">Styles are unavailable in offline mode.</p>
             ) : (
-              <div className="mt-4 grid max-h-80 grid-cols-3 gap-2 overflow-y-auto sm:grid-cols-5">
-                {templates.map((t) => (
+              <>
+              <div className="mt-4 grid max-h-96 grid-cols-3 gap-2 overflow-y-auto sm:grid-cols-5">
+                {(showAll ? templates : curated(templates)).map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setTemplateId(t.id)}
@@ -232,10 +238,17 @@ export default function Prepare() {
                     title={t.title}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={t.thumbnail} alt={t.title} className="aspect-square w-full object-cover" loading="lazy" />
+                    <img src={t.thumbnail} alt={t.title} className="aspect-square w-full object-cover" />
+                    <span className="block truncate px-1 py-0.5 text-[11px] text-muted">
+                      {/bald/i.test(t.title) ? "No hair (preview)" : t.title}
+                    </span>
                   </button>
                 ))}
               </div>
+              <button className="mt-2 text-xs text-muted underline" onClick={() => setShowAll((v) => !v)}>
+                {showAll ? "Show shorter styles only" : `Show all ${templates.length} styles`}
+              </button>
+              </>
             )}
 
             <button className="btn btn-primary mt-5 w-full" disabled={!canRun || busy} onClick={run}>
@@ -265,7 +278,7 @@ export default function Prepare() {
                   </a>
                 )}
               </div>
-              <p className="mt-3 text-center text-xs text-muted">AI-generated preview. Real fabrics and fit will differ.</p>
+              <p className="mt-3 text-center text-xs text-muted">AI-generated preview. Real results will differ.</p>
             </section>
           )}
         </>

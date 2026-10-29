@@ -27,7 +27,7 @@ const FEATURES = [
   {
     icon: Sparkles,
     title: "Prepare for hair loss",
-    body: "Try scarves, hats and shorter styles on your own photo, before treatment starts.",
+    body: "See shorter styles, hats, or no hair at all on your own face, before it happens.",
   },
 ];
 

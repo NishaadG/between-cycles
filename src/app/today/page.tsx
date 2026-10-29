@@ -129,7 +129,7 @@ export default function Today() {
         </Link>
         <Link href="/prepare" className="card p-4 hover:border-primary">
           <h3 className="font-semibold">Prepare for hair loss</h3>
-          <p className="mt-1 text-sm text-muted">Try scarves, hats and shorter styles on your photo.</p>
+          <p className="mt-1 text-sm text-muted">Preview shorter styles or no hair on your own photo.</p>
         </Link>
       </section>
 
