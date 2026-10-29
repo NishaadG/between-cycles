@@ -35,6 +35,15 @@ const TABS: { id: TryOnKind; label: string; hint: string; shop: string }[] = [
   { id: "hair", label: "Shorter styles", hint: "Some people find going shorter first makes the change feel more in their control.", shop: "" },
 ];
 
+const SAMPLES: Record<"scarf" | "hat", { src: string; label: string }[]> = {
+  scarf: [
+    { src: "/samples/scarf-floral.jpg", label: "Floral cotton" },
+    { src: "/samples/scarf-magenta.jpg", label: "Printed silk" },
+    { src: "/samples/scarf-bandana.jpg", label: "Bandana" },
+  ],
+  hat: [{ src: "/samples/hat-beanie.jpg", label: "Soft beanie" }],
+};
+
 interface Template {
   id: string;
   title: string;
@@ -139,6 +148,7 @@ export default function Prepare() {
                   onClick={() => {
                     setTab(t.id);
                     setStyle("random");
+                    setRef(null);
                   }}
                   className={`flex-1 rounded-full px-3 py-2 text-sm font-medium ${tab === t.id ? "bg-surface text-ink shadow-sm" : "text-muted"}`}
                 >
@@ -147,6 +157,23 @@ export default function Prepare() {
               ))}
             </div>
             <p className="mt-3 text-sm text-muted">{current.hint}</p>
+
+            {tab !== "hair" && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {SAMPLES[tab].map((sm) => (
+                  <button
+                    key={sm.src}
+                    title={sm.label}
+                    onClick={async () => setRef({ blob: await (await fetch(sm.src)).blob(), url: sm.src })}
+                    className={`size-16 overflow-hidden rounded-xl border-2 ${ref?.url === sm.src ? "border-primary" : "border-line"}`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={sm.src} alt={sm.label} className="h-full w-full object-cover" />
+                  </button>
+                ))}
+                <span className="self-center text-xs text-muted">Samples, or upload your own below</span>
+              </div>
+            )}
 
             {tab !== "hair" ? (
               <div className="mt-4 grid gap-4 sm:grid-cols-[160px_1fr]">
