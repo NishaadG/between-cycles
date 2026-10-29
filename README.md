@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Between Cycles
 
-## Getting Started
+**Know when your skin is really changing.** A skin companion for people going through cancer treatment.
 
-First, run the development server:
+About 9 in 10 people on EGFR-targeted cancer therapy get a skin reaction, usually starting in weeks 1–3 and peaking in weeks 3–4, mostly on the face. Other chemotherapy drugs cause dryness and darker patches, and many cause hair loss. Patients are told to "report any changes", but they are rarely given a way to measure them.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Between Cycles turns a phone selfie into a measurement, compares it with the person's **own** baseline, ignores normal photo-to-photo noise, and produces a one-page summary to show the care team.
+
+## What it does
+
+| | |
+|---|---|
+| **Baseline** | Three scans before treatment set the person's normal and measure how much their scores move between photos when nothing has changed. |
+| **Check-ins** | Each scan is compared with the baseline. A change is flagged only when it is bigger than the person's own measurement noise (95% minimal detectable change). |
+| **Symptoms** | Each check-in asks about things a photo can't see (fever, blisters, signs of infection, pain). Any of these switches the app to "Contact your care team today", whatever the scores say. |
+| **Care-team report** | A printable page with the change table, charts across treatment cycles, baseline vs latest photos with detection overlays, recent symptoms and questions to ask. |
+| **Product check** | Paste an ingredient list. Ten fixed rules, each citing published patient guidance (NHS, Macmillan, MASCC, U.S. Pharmacist), flag what to avoid, what to ask about and what helps. No AI guessing. |
+| **Hair prep** | Preview shorter hairstyles, or no hair at all, on your own face before hair loss begins, plus hats. |
+| **Private** | No accounts. Photos and history stay in the browser (IndexedDB). The server only relays a photo to the analysis API and keeps nothing. |
+
+## How the YouCam API is used
+
+| API | Endpoint | Used for |
+|---|---|---|
+| AI Skin Analysis (SD) | `POST /s2s/v2.0/task/skin-analysis` | 8 concerns per scan: redness, acne, moisture, age spots (tracked), plus texture, oiliness, radiance, dark circles. Raw scores and per-concern detection masks. |
+| AI Hairstyle Generator | `POST /s2s/v2.1/task/hair-transfer`, `GET /s2s/v2.1/task/template/hair-transfer` | Face-preserving previews of shorter styles and a no-hair preview. |
+| AI Hat Try-On | `POST /s2s/v2.0/task/hat` | Styled previews with a hat or beanie. |
+| File API, Unit API | `POST /s2s/v2.0/file`, `GET /s2s/v1.0/client/credit` | Uploads; protecting the unit balance on the public demo. |
+
+All calls run server-side (`src/lib/youcam.ts`): register file → upload to the pre-signed URL → create task → poll with back-off. Result images are downloaded and resized immediately because their URLs expire.
+
+**Why `raw_score`, not `ui_score`:** the vendor documents the UI score as adjusted upward to be encouraging. That is right for a beauty app and wrong for tracking change, so the app uses raw scores and shows `level = 100 − raw_score` (higher means more visible).
+
+## The measurement method
+
+```
+SEM   = within-person SD of the baseline scans
+MDC95 = 1.96 × √2 × SEM            (minimum 3 points)
+flag  = |latest − baseline mean| > MDC95
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+This is the minimal detectable change from test–retest reliability studies: a difference larger than MDC95 is unlikely (< 5%) to be noise alone. Noisier concerns automatically get wider bands. The logic lives in `src/lib/stats.ts` and is unit-tested.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Repeatability measurements from real repeated selfies are published on the in-app **How it works** page (`/method`) and in `src/data/repeatability.json`, produced by `scripts/repeatability.mjs`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Limits, plainly
 
-## Learn More
+- The scores come from a cosmetic skin model and have **not** been validated against clinical grading (CTCAE or the MASCC EGFR inhibitor skin toxicity tool).
+- Only the face is analysed; scalp, chest, back and hand-foot reactions are out of scope.
+- The app never suggests prescription treatment, and it does not diagnose. It tells people when a change is worth raising and helps them raise it.
+- The demo journey uses clearly labelled synthetic data.
 
-To learn more about Next.js, take a look at the following resources:
+## Run it
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm install
+echo "YOUCAM_API_KEY=your_key" > .env.local   # without a key the app runs in offline mode with placeholder scores
+npm run dev
+npm test
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Optional environment variables: `YOUCAM_API_BASE` (default `https://yce-api-01.makeupar.com`), `RATE_LIMIT_PER_HOUR` (default 30 per IP), `UNIT_FLOOR` (default 40).
 
-## Deploy on Vercel
+Built with Next.js 16, React 19, Tailwind CSS 4, Recharts and idb-keyval.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Sources
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- U.S. Pharmacist: [Epidermal Growth Factor Receptor Inhibitors and Skin Rash](https://www.uspharmacist.com/article/epidermal-growth-factor-receptor-inhibitors-and-skin-rash)
+- Lacouture et al., MASCC: [EGFR inhibitor dermatologic toxicity guidelines](https://link.springer.com/article/10.1007/s00520-011-1197-6), Supportive Care in Cancer, 2011
+- NCODA: [Managing EGFR Inhibitor Induced Rash](https://ncoda.org/wp-content/uploads/2025/03/Managing-EGFR-Inhibitor-Induced-Rash_PQI_NCODA.pdf)
+- St George's University Hospitals NHS: [Skin changes and cancer](https://www.stgeorges.nhs.uk/service/living-with-and-beyond-cancer-2/managing-physical-consequences-of-cancer-and-cancer-treatment/skin-changes-and-cancer/)
+- Macmillan Cancer Support: [Dry, sore and itchy skin](https://www.macmillan.org.uk/_images/dry-sore-itchy-skin_tcm9-356295.pdf)
+- Basch et al., JAMA 2017: [patient-reported symptom monitoring and survival](https://www.mskcc.org/press-releases/real-time-patient-reported-symptom-monitoring-demonstrates-overall-survival-benefit)
+- ESMO OncologyPRO: [Papulopustular rash](https://oncologypro.esmo.org/oncology-in-practice/palliative-and-supportive-care/multikinase-inhibitor-related-skin-toxicity/healthcare-professionals/symptoms-and-grading/skin-changes/papulopustular-rash)
+
+Sample hat image: CC0, see `public/samples/ATTRIBUTION.md`.
+
+## Disclaimer
+
+Between Cycles tracks visible changes in photos. It does not diagnose, grade or treat anything and is not a medical device or a substitute for a care team.
+
+## License
+
+MIT

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { guard } from "@/lib/guard";
 import { YouCamError, analyzeSkin } from "@/lib/youcam";
 
 export const runtime = "nodejs";
@@ -7,6 +8,8 @@ export const maxDuration = 120;
 const TYPES = ["image/jpeg", "image/png"];
 
 export async function POST(req: Request) {
+  const blocked = await guard(req);
+  if (blocked) return blocked;
   const form = await req.formData().catch(() => null);
   const photo = form?.get("photo");
   if (!(photo instanceof Blob) || !TYPES.includes(photo.type)) {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { guard } from "@/lib/guard";
 import { YouCamError, tryOn } from "@/lib/youcam";
 import type { TryOnKind } from "@/lib/types";
 
@@ -8,6 +9,8 @@ export const maxDuration = 180;
 const KINDS: TryOnKind[] = ["scarf", "hat", "hair"];
 
 export async function POST(req: Request) {
+  const blocked = await guard(req);
+  if (blocked) return blocked;
   const form = await req.formData().catch(() => null);
   const selfie = form?.get("selfie");
   const kind = String(form?.get("kind") ?? "") as TryOnKind;
