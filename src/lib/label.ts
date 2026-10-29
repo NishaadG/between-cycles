@@ -43,8 +43,9 @@ export async function readLabel(bytes: Buffer, mimeType: string): Promise<LabelR
       return await readWith(model, bytes, mimeType);
     } catch (e) {
       lastError = e;
-      // Only quota and server errors are worth retrying on another model.
-      if (!(e instanceof RetryableError)) throw e;
+      // Quota, server errors and timeouts are worth retrying on another model.
+      const timedOut = e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError");
+      if (!(e instanceof RetryableError) && !timedOut) throw e;
     }
   }
   throw lastError;
@@ -61,6 +62,8 @@ async function readWith(model: string, bytes: Buffer, mimeType: string): Promise
       generationConfig: { temperature: 0, responseMimeType: "application/json", responseSchema: SCHEMA },
     }),
     cache: "no-store",
+    // A stuck model shouldn't hold the request; the next one gets a turn.
+    signal: AbortSignal.timeout(20_000),
   });
   if (!res.ok) {
     const body = await res.text().catch(() => "");

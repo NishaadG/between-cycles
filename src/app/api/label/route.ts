@@ -3,7 +3,7 @@ import { guard } from "@/lib/guard";
 import { labelReaderAvailable, readLabel } from "@/lib/label";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 75;
 
 export async function GET() {
   return NextResponse.json({ available: labelReaderAvailable() });
