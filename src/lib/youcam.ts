@@ -4,6 +4,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 import { CONCERN_IDS, concernLevel, type ConcernId } from "./concerns";
+import type { SkinTypeScale } from "./stats";
 import type { ConcernResult, SkinAnalysis, TryOnKind, TryOnResult } from "./types";
 
 // Server-side client for the skin analysis and try-on APIs.
@@ -35,6 +36,8 @@ const FRIENDLY: Record<string, string> = {
   error_large_face_angle: "Face the camera straight on.",
   error_multiple_people: "Make sure only one person is in the photo.",
   error_no_shoulder: "Step back a little so your shoulders are visible.",
+  error_face_angle_invalid: "Lower your head about 45 degrees so your hairline and parting are visible.",
+  error_pose: "Lower your head about 45 degrees so your hairline and parting are visible.",
   exceed_max_filesize: "The photo is larger than 10 MB.",
 };
 
@@ -275,4 +278,47 @@ export async function unitBalance(): Promise<number | null> {
   } catch {
     return null;
   }
+}
+
+// ---------- skin type (Fitzpatrick I-VI), measured once ----------
+
+export interface SkinTypeResult {
+  scale: SkinTypeScale;
+  mode: "live" | "mock";
+}
+
+export async function skinType(bytes: Buffer): Promise<SkinTypeResult | null> {
+  if (!isLive()) return null; // never guess a skin type
+  // This analyzer only accepts JPEG, at least 320 px on the short side.
+  const jpeg = await sharp(bytes).rotate().jpeg({ quality: 92 }).toBuffer();
+  return cached(`skintype-${hash(jpeg)}`, async () => {
+    const fileId = await uploadFile(jpeg, "image/jpeg");
+    const r = await runTask<{ fitzpatrick_scale: SkinTypeScale }>("/s2s/v2.0/task/fitzpatrick-scale-analyzer", {
+      version: "1.0",
+      src_file_id: fileId,
+    });
+    return { scale: r.fitzpatrick_scale, mode: "live" as const };
+  });
+}
+
+// ---------- hair density (4 levels plus a continuous value) ----------
+
+export interface HairDensityResult {
+  value: number; // continuous score, higher = denser (range undocumented)
+  term: string;
+  mode: "live" | "mock";
+}
+
+export async function hairDensity(bytes: Buffer, contentType: string): Promise<HairDensityResult> {
+  if (!isLive()) {
+    const seed = createHash("sha256").update(bytes).digest();
+    return { value: Math.round((1 + (seed[0] / 255)) * 100) / 100, term: "Placeholder", mode: "mock" };
+  }
+  return cached(`hair-${hash(bytes)}`, async () => {
+    const fileId = await uploadFile(bytes, contentType);
+    const r = await runTask<{ hair_density: { mapping: string; term: string } }>("/s2s/v2.0/task/hair-density-detection", {
+      src_file_id: fileId,
+    });
+    return { value: Number(r.hair_density.mapping), term: r.hair_density.term, mode: "live" as const };
+  });
 }

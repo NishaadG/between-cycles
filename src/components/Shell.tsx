@@ -6,11 +6,11 @@ import { FileText, FlaskConical, Home, LineChart, Sparkles } from "lucide-react"
 import { useApiStatus } from "@/lib/useStatus";
 import type { Profile } from "@/lib/store";
 
-const NAV = [
+const NAV: { href: string; label: string; icon: typeof Home; also?: string }[] = [
   { href: "/today", label: "Today", icon: Home },
   { href: "/journey", label: "Journey", icon: LineChart },
   { href: "/products", label: "Products", icon: FlaskConical },
-  { href: "/prepare", label: "Hair prep", icon: Sparkles },
+  { href: "/hair", label: "Hair", icon: Sparkles, also: "/prepare" },
   { href: "/report", label: "Report", icon: FileText },
 ];
 
@@ -46,12 +46,12 @@ export function Shell({ profile, children }: { profile?: Profile; children: Reac
           </div>
         </div>
         <nav className="mx-auto hidden max-w-3xl gap-1 px-4 pb-2 md:flex">
-          {NAV.map(({ href, label, icon: Icon }) => (
+          {NAV.map(({ href, label, icon: Icon, also }) => (
             <Link
               key={href}
               href={href}
               className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm ${
-                path.startsWith(href) ? "bg-primary-soft font-semibold text-primary" : "text-muted hover:text-ink"
+                path.startsWith(href) || (also && path.startsWith(also)) ? "bg-primary-soft font-semibold text-primary" : "text-muted hover:text-ink"
               }`}
             >
               <Icon size={16} />
@@ -65,12 +65,12 @@ export function Shell({ profile, children }: { profile?: Profile; children: Reac
 
       <nav className="no-print fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface md:hidden">
         <div className="mx-auto grid max-w-md grid-cols-5">
-          {NAV.map(({ href, label, icon: Icon }) => (
+          {NAV.map(({ href, label, icon: Icon, also }) => (
             <Link
               key={href}
               href={href}
               className={`flex flex-col items-center gap-0.5 py-2.5 text-[11px] ${
-                path.startsWith(href) ? "font-semibold text-primary" : "text-muted"
+                path.startsWith(href) || (also && path.startsWith(also)) ? "font-semibold text-primary" : "text-muted"
               }`}
             >
               <Icon size={20} />

@@ -38,10 +38,10 @@ export function useJourney() {
       .filter((s) => s.kind === "checkin")
       .map((scan) => {
         const changes = baseline ? compare(levelsOf(scan), baseline) : null;
-        return { scan, changes, guidance: guidance(changes, scan.symptoms) };
+        return { scan, changes, guidance: guidance(changes, scan.symptoms, { skinType: profile?.skinType?.scale }) };
       });
     return { baselineScans, baseline, checkIns, latest: checkIns.at(-1) ?? null };
-  }, [scans]);
+  }, [scans, profile]);
 
   return { loading, profile, scans, reload, ...derived };
 }

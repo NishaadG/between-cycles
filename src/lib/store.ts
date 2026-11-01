@@ -2,7 +2,7 @@
 
 import { clear, get, set } from "idb-keyval";
 import { CONCERN_IDS, concernLevel, type ConcernId } from "./concerns";
-import type { SymptomId } from "./stats";
+import type { SkinTypeScale, SymptomId } from "./stats";
 import type { SkinAnalysis, TryOnKind } from "./types";
 
 // Everything a patient records stays in this browser (IndexedDB).
@@ -23,6 +23,18 @@ export interface Profile {
   treatment: Treatment;
   cycleLength: number;
   firstCycleStart: string; // YYYY-MM-DD
+  // Measured once from the first baseline photo (Fitzpatrick I-VI).
+  skinType?: { scale: SkinTypeScale; measuredAt: string };
+  demo?: boolean;
+}
+
+export interface HairCheck {
+  id: string;
+  takenAt: string;
+  value: number;
+  term: string;
+  mode: "live" | "mock";
+  photo?: string;
   demo?: boolean;
 }
 
@@ -66,6 +78,13 @@ export async function deleteScan(id: string) {
 export const listTryOns = async () => (await get<SavedTryOn[]>("tryons")) ?? [];
 export async function addTryOn(t: SavedTryOn) {
   await set("tryons", [t, ...(await listTryOns())].slice(0, 24));
+}
+
+export async function listHairChecks(): Promise<HairCheck[]> {
+  return ((await get<HairCheck[]>("hair")) ?? []).sort((a, b) => a.takenAt.localeCompare(b.takenAt));
+}
+export async function addHairCheck(h: HairCheck) {
+  await set("hair", [...(await listHairChecks()), h]);
 }
 
 export const resetAll = () => clear();
@@ -137,7 +156,31 @@ export async function seedDemo() {
     };
   });
 
+  // Hair density on the same synthetic timeline: steady, then a mild drop.
+  const hair: HairCheck[] = (
+    [
+      [-3, 1.84, "Medium Density"],
+      [-1, 1.79, "Medium Density"],
+      [12, 1.72, "Medium Density"],
+      [24, 1.43, "Medium Density"],
+      [34, 1.12, "Low Density"],
+    ] as const
+  ).map(([day, value, term]) => {
+    const d = new Date(start);
+    d.setDate(d.getDate() + day);
+    d.setHours(9, 5, 0, 0);
+    return { id: newId(), takenAt: d.toISOString(), value, term, mode: "mock", demo: true };
+  });
+
   await clear();
-  await saveProfile({ name: "Demo patient", treatment: "egfr", cycleLength: 28, firstCycleStart: iso(start), demo: true });
+  await saveProfile({
+    name: "Demo patient",
+    treatment: "egfr",
+    cycleLength: 28,
+    firstCycleStart: iso(start),
+    skinType: { scale: "V", measuredAt: start.toISOString() },
+    demo: true,
+  });
   await set("scans", scans);
+  await set("hair", hair);
 }

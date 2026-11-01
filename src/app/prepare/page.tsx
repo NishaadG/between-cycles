@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ExternalLink, ImagePlus, RotateCcw } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, ExternalLink, ImagePlus, RotateCcw } from "lucide-react";
 import { Camera } from "@/components/Camera";
 import { Shell } from "@/components/Shell";
 import { PageTitle, Spinner } from "@/components/ui";
@@ -128,6 +129,9 @@ export default function Prepare() {
         title="Prepare for hair loss"
         subtitle="Not every treatment causes hair loss. If yours might, you can try options on your own photo now, at your own pace."
       />
+      <Link href="/hair" className="mb-5 inline-flex items-center gap-1 text-sm font-medium text-primary">
+        <ArrowLeft size={16} /> Back to hair check
+      </Link>
 
       {!selfie ? (
         <section className="card p-5">

@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Printer } from "lucide-react";
 import { ConcernChart, toPoints } from "@/components/ConcernChart";
 import { Shell } from "@/components/Shell";
 import { Disclaimer, GuidanceBadge, Spinner, guidanceTitle } from "@/components/ui";
 import { WATCHED } from "@/lib/concerns";
 import { SYMPTOMS, cyclePosition, type Change, type SymptomId } from "@/lib/stats";
-import { TREATMENTS, type Profile } from "@/lib/store";
+import { summarizeHair } from "@/lib/hair";
+import { TREATMENTS, listHairChecks, type HairCheck, type Profile } from "@/lib/store";
 import { useJourney } from "@/lib/useJourney";
 
 const COLORS = ["var(--chart-2)", "var(--chart-1)", "var(--chart-3)", "var(--chart-4)"];
@@ -35,6 +36,10 @@ function questions(changes: Change[] | null, symptoms: SymptomId[], profile: Pro
 export default function Report() {
   const j = useJourney();
   const [now] = useState(() => Date.now());
+  const [hairChecks, setHairChecks] = useState<HairCheck[]>([]);
+  useEffect(() => {
+    listHairChecks().then(setHairChecks);
+  }, []);
   if (j.loading) {
     return (
       <Shell>
@@ -66,6 +71,7 @@ export default function Report() {
     ...new Set(j.checkIns.filter((c) => new Date(c.scan.takenAt).getTime() >= since).flatMap((c) => c.scan.symptoms)),
   ];
   const firstBaseline = j.baselineScans[0];
+  const hair = hairChecks.length ? summarizeHair(hairChecks) : null;
 
   return (
     <Shell profile={profile}>
@@ -90,6 +96,25 @@ export default function Report() {
             <dd className="sm:col-span-3">
               {j.baselineScans.length} baseline, {j.checkIns.length} check-ins
             </dd>
+            {profile.skinType && (
+              <>
+                <dt className="text-muted">Skin type</dt>
+                <dd className="sm:col-span-3">
+                  Fitzpatrick {profile.skinType.scale} (measured from photo)
+                  {(profile.skinType.scale === "V" || profile.skinType.scale === "VI") &&
+                    ". Redness scores may under-read on deeper skin; weigh symptoms accordingly."}
+                </dd>
+              </>
+            )}
+            {hair && hair.latest !== null && (
+              <>
+                <dt className="text-muted">Hair density</dt>
+                <dd className="sm:col-span-3">
+                  Score {hair.latest.toFixed(2)} now
+                  {hair.delta !== null ? `, ${hair.delta > 0 ? "+" : ""}${hair.delta.toFixed(2)} vs start (${hair.baseline!.toFixed(2)})` : ""}
+                </dd>
+              </>
+            )}
           </dl>
           {profile.demo && <p className="mt-3 text-xs font-semibold text-discuss">Demo data: synthetic values for illustration.</p>}
         </header>

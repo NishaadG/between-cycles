@@ -1,6 +1,6 @@
 // Every piece of guidance in the app points at one of these.
 
-export type SourceId = "stgeorges" | "macmillan" | "uspharm" | "ncoda" | "mascc" | "basch" | "esmo" | "vendor";
+export type SourceId = "stgeorges" | "macmillan" | "uspharm" | "ncoda" | "mascc" | "basch" | "esmo" | "vendor" | "scalpcool" | "skintone" | "obf";
 
 export interface Source {
   id: SourceId;
@@ -58,5 +58,23 @@ export const SOURCES: Record<SourceId, Source> = {
     title: "AI Skin Analysis API reference",
     publisher: "Perfect Corp. YouCam API",
     url: "https://docs.makeupar.com/reference/ai_skin_analysis.md",
+  },
+  scalpcool: {
+    id: "scalpcool",
+    title: "Effect of a scalp cooling device on alopecia in women undergoing chemotherapy (SCALP trial), JAMA 2017;317(6):596-605",
+    publisher: "Nangia et al., JAMA",
+    url: "https://doi.org/10.1001/jama.2016.20939",
+  },
+  skintone: {
+    id: "skintone",
+    title: "EGFR-targeting TKI-related skin toxicities in a patient with darker skin, Current Oncology 2022",
+    publisher: "Current Oncology",
+    url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC9028593/",
+  },
+  obf: {
+    id: "obf",
+    title: "Open Beauty Facts product database (Open Database License)",
+    publisher: "Open Beauty Facts",
+    url: "https://world.openbeautyfacts.org/",
   },
 };

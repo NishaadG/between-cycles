@@ -87,6 +87,14 @@ export default function Today() {
                 ) : (
                   <p className="mt-2 text-sm">No change beyond your normal photo-to-photo variation at your last check-in.</p>
                 )}
+                {latest.guidance.caution && (
+                  <p className="mt-3 border-t border-black/10 pt-3 text-xs">
+                    {latest.guidance.caution}{" "}
+                    <Link href="/method#skin-tone" className="underline">
+                      Why
+                    </Link>
+                  </p>
+                )}
                 {latest.guidance.level === "urgent" && (
                   <p className="mt-3 text-sm font-semibold">
                     Call your treatment team&apos;s helpline now. Don&apos;t wait for the next appointment.
@@ -130,9 +138,9 @@ export default function Today() {
           <h3 className="font-semibold">Is this product okay?</h3>
           <p className="mt-1 text-sm text-muted">Check an ingredient list against patient guidance.</p>
         </Link>
-        <Link href="/prepare" className="card p-4 hover:border-primary">
-          <h3 className="font-semibold">Prepare for hair loss</h3>
-          <p className="mt-1 text-sm text-muted">Preview shorter styles or no hair on your own photo.</p>
+        <Link href="/hair" className="card p-4 hover:border-primary">
+          <h3 className="font-semibold">Hair check</h3>
+          <p className="mt-1 text-sm text-muted">Track hair density each cycle, and preview shorter styles first.</p>
         </Link>
       </section>
 

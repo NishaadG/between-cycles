@@ -11,7 +11,8 @@ import { PageTitle, Spinner, guidanceTitle } from "@/components/ui";
 import { CONCERNS, WATCHED } from "@/lib/concerns";
 import { photoProblems, preparePhoto, type PreparedPhoto } from "@/lib/image";
 import { MIN_BASELINE_SCANS, SYMPTOMS, compare, computeBaseline, guidance, type SymptomId } from "@/lib/stats";
-import { addScan, levelsOf, listScans, newId, type Scan } from "@/lib/store";
+import { addScan, getProfile, levelsOf, listScans, newId, saveProfile, type Scan } from "@/lib/store";
+import type { SkinTypeScale } from "@/lib/stats";
 import type { SkinAnalysis } from "@/lib/types";
 import { useJourney } from "@/lib/useJourney";
 
@@ -60,6 +61,8 @@ function ScanFlow() {
     setStep("analyzing");
     const body = new FormData();
     body.append("photo", photo.blob, "scan.jpg");
+    // Measured in parallel with the analysis, so it adds no waiting.
+    const skinTypeDone = kind === "baseline" && !j.profile?.skinType ? measureSkinType(photo.blob) : null;
     try {
       const res = await fetch("/api/skin", { method: "POST", body });
       const json = await res.json();
@@ -73,6 +76,7 @@ function ScanFlow() {
         symptoms,
       };
       await addScan(scan);
+      await skinTypeDone;
       setAllScans(await listScans());
       setSaved(scan);
       setStep("result");
@@ -80,6 +84,27 @@ function ScanFlow() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Analysis failed.");
       setStep("error");
+    }
+  }
+
+  // Once per person: skin type decides whether redness readings get a
+  // reliability caution. Failure is silent: the app works without it.
+  async function measureSkinType(blob: Blob) {
+    const profile = await getProfile();
+    if (!profile || profile.skinType) return;
+    const body = new FormData();
+    body.append("photo", blob, "scan.jpg");
+    try {
+      const res = await fetch("/api/skin-type", { method: "POST", body });
+      const json = (await res.json()) as { result?: { scale: SkinTypeScale } | null };
+      if (!res.ok || !json.result) return;
+      const latest = await getProfile();
+      if (latest && !latest.skinType) {
+        await saveProfile({ ...latest, skinType: { scale: json.result.scale, measuredAt: new Date().toISOString() } });
+        j.reload();
+      }
+    } catch {
+      // Skin type is optional; the app works without it.
     }
   }
 
@@ -170,16 +195,16 @@ function ScanFlow() {
         </div>
       )}
 
-      {step === "result" && saved && <Result scan={saved} all={allScans} />}
+      {step === "result" && saved && <Result scan={saved} all={allScans} skinType={j.profile?.skinType?.scale} />}
     </Shell>
   );
 }
 
-function Result({ scan, all }: { scan: Scan; all: Scan[] }) {
+function Result({ scan, all, skinType }: { scan: Scan; all: Scan[]; skinType?: SkinTypeScale }) {
   const baselineScans = all.filter((s) => s.kind === "baseline");
   const baseline = baselineScans.length >= MIN_BASELINE_SCANS ? computeBaseline(baselineScans.map(levelsOf)) : null;
   const changes = scan.kind === "checkin" && baseline ? compare(levelsOf(scan), baseline) : null;
-  const g = scan.kind === "checkin" ? guidance(changes, scan.symptoms) : null;
+  const g = scan.kind === "checkin" ? guidance(changes, scan.symptoms, { skinType }) : null;
 
   return (
     <div className="space-y-5">
@@ -223,6 +248,7 @@ function Result({ scan, all }: { scan: Scan; all: Scan[] }) {
             </ul>
           )}
           {!baseline && <p className="mt-2 text-sm">Finish your baseline to see changes.</p>}
+          {g.caution && <p className="mt-3 border-t border-black/10 pt-3 text-xs">{g.caution}</p>}
         </div>
       )}
 

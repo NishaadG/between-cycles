@@ -64,3 +64,15 @@ describe("cyclePosition", () => {
   it("rolls into cycle 2", () => expect(cyclePosition(new Date(2026, 9, 22), start, 21)).toEqual({ cycle: 2, day: 1 }));
   it("null before treatment", () => expect(cyclePosition(new Date(2026, 8, 30), start, 21)).toBeNull());
 });
+
+describe("skin type caution", () => {
+  const base = computeBaseline([levels(20), levels(22), levels(21)]);
+  it("adds a caution for deeper skin", () => {
+    expect(guidance(compare(levels(21), base), [], { skinType: "V" }).caution).toBeTruthy();
+    expect(guidance(compare(levels(21), base), ["fever"], { skinType: "VI" }).caution).toBeTruthy();
+  });
+  it("adds none for lighter skin or unknown", () => {
+    expect(guidance(compare(levels(21), base), [], { skinType: "II" }).caution).toBeUndefined();
+    expect(guidance(compare(levels(21), base), []).caution).toBeUndefined();
+  });
+});

@@ -117,12 +117,30 @@ export type Guidance = "urgent" | "discuss" | "steady";
 export interface GuidanceResult {
   level: Guidance;
   reasons: string[];
+  // Shown when a reading is known to be less reliable for this person.
+  caution?: string;
 }
 
-export function guidance(changes: Change[] | null, symptoms: SymptomId[]): GuidanceResult {
+// ---------- skin type ----------
+
+export type SkinTypeScale = "I" | "II" | "III" | "IV" | "V" | "VI";
+
+// Redness is harder to see on deeper skin, for cameras and clinicians
+// alike, so on Fitzpatrick V-VI a flat redness score proves little.
+export const isDeeperSkin = (s?: SkinTypeScale) => s === "V" || s === "VI";
+
+export const DEEPER_SKIN_CAUTION =
+  "Redness is harder to see on deeper skin, for cameras and clinicians alike. A steady redness score doesn't rule out a rash, so your symptom answers count as much as the photo.";
+
+export function guidance(
+  changes: Change[] | null,
+  symptoms: SymptomId[],
+  opts: { skinType?: SkinTypeScale } = {},
+): GuidanceResult {
+  const caution = isDeeperSkin(opts.skinType) ? DEEPER_SKIN_CAUTION : undefined;
   const urgent = SYMPTOMS.filter((s) => s.urgent && symptoms.includes(s.id));
   if (urgent.length) {
-    return { level: "urgent", reasons: urgent.map((s) => s.label) };
+    return { level: "urgent", reasons: urgent.map((s) => s.label), caution };
   }
   const watchedIds = new Set(WATCHED.map((w) => w.id));
   const worse = (changes ?? []).filter((c) => watchedIds.has(c.id) && c.status === "worse");
@@ -134,9 +152,10 @@ export function guidance(changes: Change[] | null, symptoms: SymptomId[]): Guida
         ...worse.map((c) => `${concernInfo(c.id).label} up ${c.delta} points, beyond your normal photo-to-photo variation`),
         ...reported.map((s) => s.label),
       ],
+      caution,
     };
   }
-  return { level: "steady", reasons: [] };
+  return { level: "steady", reasons: [], caution };
 }
 
 // ---------- treatment cycle position ----------
