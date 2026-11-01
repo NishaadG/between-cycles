@@ -5,8 +5,9 @@ import "server-only";
 // in ingredients.ts, after the person has checked the transcription.
 
 const KEY = process.env.GEMINI_API_KEY || "";
-// Free-tier quotas are per model, so fall back through several.
-const MODELS = (process.env.GEMINI_MODELS || "gemini-flash-latest,gemini-2.5-flash,gemini-flash-lite-latest")
+// Free-tier quotas are per model, so fall back through several. Lite goes
+// first: in our benchmark it was the fast one (see scripts/label-bench.mjs).
+const MODELS = (process.env.GEMINI_MODELS || "gemini-flash-lite-latest,gemini-flash-latest")
   .split(",")
   .map((m) => m.trim())
   .filter(Boolean);
