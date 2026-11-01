@@ -1,11 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Camera, CheckCircle2, CircleAlert, OctagonX } from "lucide-react";
+import { ArrowRight, Camera, CheckCircle2, CircleAlert, ExternalLink, OctagonX } from "lucide-react";
 import { Shell } from "@/components/Shell";
 import { Cite, PageTitle } from "@/components/ui";
 import { preparePhoto } from "@/lib/image";
 import { EXAMPLES, checkIngredients, type Verdict } from "@/lib/ingredients";
+import { productUrl } from "@/lib/catalog";
+import { useCatalog } from "@/lib/useCatalog";
 import { useJourney } from "@/lib/useJourney";
 
 const VERDICT: Record<Verdict, { label: string; cls: string; icon: typeof CheckCircle2 }> = {
@@ -143,6 +146,14 @@ export default function Products() {
         </div>
       )}
 
+      <Picks
+        onCheck={(ingredients) => {
+          setText(ingredients);
+          setReadInfo(null);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      />
+
       <section className="card mt-8 p-5">
         <h2 className="font-serif text-lg font-semibold">Gentle basics during treatment</h2>
         <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
@@ -157,5 +168,94 @@ export default function Products() {
         </p>
       </section>
     </Shell>
+  );
+}
+
+function Picks({ onCheck }: { onCheck: (ingredients: string) => void }) {
+  const data = useCatalog();
+  const [cat, setCat] = useState("face-creams");
+  if (!data) return null;
+  const current = data.categories.find((c) => c.audit.id === cat) ?? data.categories[0];
+  const a = current.audit;
+  const pct = Math.round((a.ok / a.total) * 100);
+  const top = a.flags[0];
+
+  return (
+    <section className="mt-8">
+      <h2 className="font-serif text-2xl font-semibold">Treatment-friendly picks</h2>
+      <p className="mt-1 text-sm text-muted">
+        Real products from an open database, run through the same rules. No ads, no affiliate links.
+      </p>
+      <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+        {data.categories.map((c) => (
+          <button
+            key={c.audit.id}
+            onClick={() => setCat(c.audit.id)}
+            className={`shrink-0 rounded-full px-3 py-1.5 text-sm ${
+              c.audit.id === cat ? "bg-primary font-semibold text-white" : "bg-surface-2 text-muted hover:text-ink"
+            }`}
+          >
+            {c.audit.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="card mt-4 p-4">
+        <p className="text-sm">
+          <strong className="text-lg">
+            {a.ok} of {a.total}
+          </strong>{" "}
+          {a.label.toLowerCase()} ({pct}%) have nothing on our watch-list.
+          {top && ` The most common problem is ${top.name.toLowerCase()}, in ${top.count}.`}
+        </p>
+        <div className="mt-3 flex h-2.5 overflow-hidden rounded-full" aria-hidden>
+          <span className="bg-steady" style={{ width: `${(a.ok / a.total) * 100}%` }} />
+          <span className="bg-discuss" style={{ width: `${(a.caution / a.total) * 100}%` }} />
+          <span className="bg-urgent" style={{ width: `${(a.avoid / a.total) * 100}%` }} />
+        </div>
+        <p className="mt-2 text-xs text-muted">
+          Green: no flags · amber: ask your team · red: contains something to avoid for now
+        </p>
+      </div>
+
+      <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {current.picks.map((p) => (
+          <li key={p.code} className="card flex min-w-0 gap-3 p-3">
+            {p.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={p.image} alt="" className="h-16 w-16 shrink-0 rounded-xl bg-surface-2 object-contain" />
+            ) : (
+              <span className="h-16 w-16 shrink-0 rounded-xl bg-surface-2" />
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">{p.name}</p>
+              <p className="truncate text-xs text-muted">{p.brand || "Unknown brand"}</p>
+              {p.helpful.length > 0 && (
+                <p className="mt-1 truncate text-xs text-steady">Has {p.helpful.join(", ").toLowerCase()}</p>
+              )}
+              <div className="mt-1.5 flex gap-3 text-xs">
+                <button className="font-medium text-primary" onClick={() => onCheck(p.ingredients)}>
+                  See the check
+                </button>
+                <a href={productUrl(p.code)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-muted">
+                  Product page <ExternalLink size={12} />
+                </a>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-xs leading-relaxed text-muted">
+        Snapshot of {data.total.toLocaleString()} products from{" "}
+        <a href={data.source.url} target="_blank" rel="noreferrer" className="underline">
+          {data.source.name}
+        </a>{" "}
+        ({data.source.license}), taken {data.source.fetchedAt}. Formulas change: check the label on the pack you buy.
+        Passing our rules is not the same as proven safe for you.
+      </p>
+      <Link href="/shelf" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary">
+        For pharmacies and shops: audit a whole shelf <ArrowRight size={16} />
+      </Link>
+    </section>
   );
 }
