@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowDownRight, ArrowRight, ArrowUpRight, BellRing, Camera, Minus } from "lucide-react";
+import { ForYou } from "@/components/ForYou";
 import { Shell } from "@/components/Shell";
 import { Disclaimer, Spinner, guidanceTitle } from "@/components/ui";
 import { WATCHED, concernInfo } from "@/lib/concerns";
@@ -128,6 +129,8 @@ export default function Today() {
               </Link>
             </section>
           )}
+
+          {latest && <ForYou changes={latest.changes} symptoms={latest.scan.symptoms} level={latest.guidance.level} />}
         </>
       )}
 

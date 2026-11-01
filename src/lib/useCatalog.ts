@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { CatalogProduct, CategoryAudit } from "./catalog";
+import type { CatalogPick, CategoryAudit } from "./catalog";
+
+export type { CatalogPick };
 
 export interface CatalogData {
   source: { name: string; license: string; url: string; fetchedAt: string };
   total: number;
-  categories: { audit: CategoryAudit; picks: (CatalogProduct & { helpful: string[] })[] }[];
+  categories: { audit: CategoryAudit; picks: CatalogPick[] }[];
 }
 
 export function useCatalog() {

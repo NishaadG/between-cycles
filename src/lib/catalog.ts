@@ -30,7 +30,12 @@ export interface Pick {
   result: CheckResult;
   // Helpful ingredients (humectants, SPF) found, used for ranking.
   helpful: string[];
+  // The same, per rule, with how many ingredients matched it.
+  good: { id: string; name: string; count: number }[];
 }
+
+// A pick as the catalogue route sends it to the browser.
+export type CatalogPick = CatalogProduct & { helpful: string[]; good: { id: string; name: string; count: number }[] };
 
 export const productUrl = (code: string) => `https://world.openbeautyfacts.org/product/${encodeURIComponent(code)}`;
 
@@ -57,6 +62,8 @@ export function auditCategory(id: string, label: string, products: CatalogProduc
   };
 }
 
+const goodCount = (p: Pick) => p.good.reduce((n, g) => n + g.count, 0);
+
 // Products with no avoid or caution flags, those with helpful ingredients
 // first. Nothing here is an endorsement: it is what the rules found.
 export function picks(category: string, products: CatalogProduct[], limit = 12): Pick[] {
@@ -64,10 +71,11 @@ export function picks(category: string, products: CatalogProduct[], limit = 12):
     .filter((p) => p.category === category)
     .map((product) => {
       const result = checkIngredients(product.ingredients);
-      const helpful = result.findings.filter((f) => f.rule.verdict === "helpful").map((f) => f.rule.name);
-      return { product, result, helpful };
+      const found = result.findings.filter((f) => f.rule.verdict === "helpful");
+      const good = found.map((f) => ({ id: f.rule.id, name: f.rule.name, count: f.matched.length }));
+      return { product, result, helpful: good.map((g) => g.name), good };
     })
     .filter((p) => p.result.overall === "ok")
-    .sort((a, b) => b.helpful.length - a.helpful.length || a.product.name.localeCompare(b.product.name))
+    .sort((a, b) => b.helpful.length - a.helpful.length || goodCount(b) - goodCount(a) || a.product.name.localeCompare(b.product.name))
     .slice(0, limit);
 }

@@ -7,6 +7,7 @@ import { AlertCircle, RotateCcw } from "lucide-react";
 import { Camera } from "@/components/Camera";
 import { MaskViewer } from "@/components/MaskViewer";
 import { Shell } from "@/components/Shell";
+import { ForYou } from "@/components/ForYou";
 import { PageTitle, Spinner, guidanceTitle } from "@/components/ui";
 import { CONCERNS, WATCHED } from "@/lib/concerns";
 import { photoProblems, preparePhoto, type PreparedPhoto } from "@/lib/image";
@@ -290,6 +291,8 @@ function Result({ scan, all, skinType }: { scan: Scan; all: Scan[]; skinType?: S
           shown as grey.
         </p>
       </div>
+
+      {g && baseline && <ForYou changes={changes} symptoms={scan.symptoms} level={g.level} />}
 
       {scan.kind === "checkin" && (
         <Link href="/today" className="btn btn-primary w-full">

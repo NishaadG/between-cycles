@@ -9,7 +9,7 @@ export function GET() {
   const products = snapshot.products as CatalogProduct[];
   const categories = snapshot.categories.map((c) => ({
     audit: auditCategory(c.id, c.label, products),
-    picks: picks(c.id, products).map((p) => ({ ...p.product, helpful: p.helpful })),
+    picks: picks(c.id, products).map((p) => ({ ...p.product, helpful: p.helpful, good: p.good })),
   }));
   return NextResponse.json({
     source: { name: snapshot.source, license: snapshot.license, url: snapshot.url, fetchedAt: snapshot.fetchedAt },

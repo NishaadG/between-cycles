@@ -174,6 +174,18 @@ export default function Products() {
 function Picks({ onCheck }: { onCheck: (ingredients: string) => void }) {
   const data = useCatalog();
   const [cat, setCat] = useState("face-creams");
+  // "See the check" from a recommendation links here as ?code=...
+  const [opened, setOpened] = useState(false);
+  useEffect(() => {
+    if (!data || opened) return;
+    setOpened(true);
+    const code = new URLSearchParams(window.location.search).get("code");
+    const hit = code && data.categories.flatMap((c) => c.picks.map((p) => ({ p, cat: c.audit.id }))).find((x) => x.p.code === code);
+    if (hit) {
+      setCat(hit.cat);
+      onCheck(hit.p.ingredients);
+    }
+  }, [data, opened, onCheck]);
   if (!data) return null;
   const current = data.categories.find((c) => c.audit.id === cat) ?? data.categories[0];
   const a = current.audit;

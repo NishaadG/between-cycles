@@ -131,7 +131,7 @@ export async function seedDemo() {
     { day: 20, kind: "checkin", rise: { acne: 15, redness: 10, moisture: 8, texture: 5 }, symptoms: ["itch", "dry"] },
     { day: 24, kind: "checkin", rise: { acne: 16, redness: 11, moisture: 7, texture: 5 }, symptoms: ["dry"] },
     { day: 29, kind: "checkin", rise: { acne: 11, redness: 8, moisture: 5, age_spot: 3 }, symptoms: ["dry"] },
-    { day: 34, kind: "checkin", rise: { acne: 8, redness: 6, moisture: 4, age_spot: 5 } },
+    { day: 34, kind: "checkin", rise: { acne: 8, redness: 6, moisture: 4, age_spot: 5 }, symptoms: ["dry"] },
   ];
   // Small deterministic wobble so the lines look like real measurements.
   const wobble = (i: number, j: number) => Math.round(Math.sin(i * 7.3 + j * 3.1) * 12) / 10;
