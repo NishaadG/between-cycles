@@ -27,7 +27,7 @@ const FEATURES = [
   {
     icon: FlaskConical,
     title: "Is this product okay now?",
-    body: "Snap or paste an ingredient list, or browse real products that pass. Each flag is a fixed rule citing patient guidance.",
+    body: "Snap or paste an ingredient list. After each check-in, get real products picked for what changed. Each flag is a fixed rule citing patient guidance.",
   },
   {
     icon: Sparkles,
@@ -37,7 +37,7 @@ const FEATURES = [
   {
     icon: Store,
     title: "For pharmacies and shops",
-    body: "Audit a whole shelf against the same rules. Only about 1 in 5 real products we checked passes.",
+    body: "Audit a whole shelf against the same rules, and add a “Gentle during treatment” badge to product pages. Only about 1 in 5 real products we checked passes.",
     href: "/shelf",
   },
 ];

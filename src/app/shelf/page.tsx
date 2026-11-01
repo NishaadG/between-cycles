@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, ArrowRight, Download } from "lucide-react";
 import { Shell } from "@/components/Shell";
 import { Cite, PageTitle, Spinner } from "@/components/ui";
 import { checkIngredients } from "@/lib/ingredients";
@@ -84,6 +84,17 @@ export default function Shelf() {
           an aisle has no quick way to tell. <Cite ids={["uspharm", "stgeorges", "macmillan"]} />
         </p>
       </section>
+
+      <Link href="/shelf/store" className="card mt-4 flex items-center gap-4 p-5 hover:border-primary">
+        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-steady-soft text-lg font-bold text-steady" aria-hidden>
+          ✓
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold">Put a &ldquo;Gentle during treatment&rdquo; badge on your product pages</span>
+          <span className="block text-sm text-muted">Two lines of code, or a public API. See it on a demo shop page.</span>
+        </span>
+        <ArrowRight size={18} className="shrink-0 text-primary" />
+      </Link>
 
       <section className="mt-6">
         <h2 className="font-serif text-2xl font-semibold">An open catalogue, audited</h2>

@@ -17,7 +17,9 @@ Between Cycles turns a phone selfie into a measurement, compares it with the per
 | **Skin-tone honesty** | Skin type (Fitzpatrick I–VI) is measured once from the first baseline photo. Redness is harder to see on deeper skin, so for types V–VI every result says plainly that a steady redness score doesn't rule out a rash and that symptoms count as much as the photo. |
 | **Product check** | Photograph the ingredient list (a vision model transcribes it, the person checks it) or paste it. Ten fixed rules, each citing published patient guidance (NHS, Macmillan, MASCC, U.S. Pharmacist), flag what to avoid, what to ask about and what helps. No AI guessing. |
 | **Treatment-friendly picks** | The same rules run over 1,033 real products from Open Beauty Facts, so patients can browse products with nothing on the watch-list, by category. |
+| **Picked for your skin today** | After each check-in, what changed is mapped to what patient guidance says helps (more bumps or redness → a gentle soap-free cleanser; dryness → a moisturiser with hydrating ingredients; darker patches → daily SPF), and filled with real products that pass every rule. Hidden when the advice is to call the care team. No sponsored placements. |
 | **Shelf check** | For pharmacies, hospital shops and retailers: the catalogue audit by category, and a tool to audit your own range (paste `name \| ingredients`, download CSV). |
+| **Shop badge and API** | A two-line embed that puts "Gentle during treatment", "Ask your care team first" or "Not advised during treatment" on any product page, with reasons and sources one tap away, plus a keyless public endpoint for whole catalogues. Demo shop page at `/shelf/store`. |
 | **Hair check** | Hair density measured each cycle from a head-lowered photo and charted against the person's starting point, useful alongside scalp cooling. |
 | **Reminders and framing** | A calendar file adds repeating check-in reminders with no account. During capture, the first baseline photo is shown faintly over the camera so every scan is framed the same way. |
 | **Hair prep** | Preview shorter hairstyles, or no hair at all, on your own face before hair loss begins, plus hats. |
@@ -37,6 +39,23 @@ Between Cycles turns a phone selfie into a measurement, compares it with the per
 All calls run server-side (`src/lib/youcam.ts`): register file → upload to the pre-signed URL → create task → poll with back-off. Result images are downloaded and resized immediately because their URLs expire.
 
 **Why `raw_score`, not `ui_score`:** the vendor documents the UI score as adjusted upward to be encouraging. That is right for a beauty app and wrong for tracking change, so the app uses raw scores and shows `level = 100 − raw_score` (higher means more visible).
+
+## For shops: the badge
+
+```html
+<div data-gentle-badge data-ingredients-from="#ingredients"></div>
+<script src="https://between-cycles.vercel.app/badge.js" async></script>
+```
+
+The script reads the ingredient list already on the page and draws the badge in a shadow DOM, so it can't clash with the shop's styles. Only the public ingredient text is sent: no key, no cookies, no tracking. For catalogues, call the API directly:
+
+```
+GET  /api/check?ingredients=Aqua,%20Glycerin,%20Parfum
+POST /api/check   {"ingredients": "Aqua, Glycerin, Parfum"}
+→ { verdict: "ok" | "caution" | "avoid", label, summary, flags: [{ name, reason, matched, sources }], helpful }
+```
+
+It is open to any origin and cached at the edge. The logic is `src/lib/badge.ts`; the rules are the same ten the app uses.
 
 ## The measurement method
 

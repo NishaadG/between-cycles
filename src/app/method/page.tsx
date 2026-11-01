@@ -178,7 +178,7 @@ export default function Method() {
           <Cite ids={["scalpcool", "vendor"]} />
         </Section>
 
-        <Section title="Product checks">
+        <Section title="Product checks" id="products">
           <p>
             The ingredient checker is a fixed list of {RULES.length} rules, not an AI model, so the same label always gets the
             same answer. When a label is photographed, a vision model only transcribes the list; the person checks the
@@ -190,6 +190,19 @@ export default function Method() {
             treatment-friendly picks and the shelf audit. Before publishing the numbers we listed every ingredient each rule
             matched across the catalogue and removed two false positives this found (phenoxyethanol read as an alcohol, urea
             preservatives read as moisturisers). Both are now unit tests.
+          </p>
+          <p>
+            <strong>Picked for your skin today.</strong> After a check-in, each change maps to what the guidance above says
+            helps: more bumps or redness to a gentle soap-free cleanser, more dryness (or reported dryness or itch) to a
+            moisturiser with hydrating ingredients, darker patches to a daily sunscreen. Each slot is filled with catalogue
+            products that pass every rule and contain that kind of ingredient, ranked by how many they contain. Nothing is
+            suggested when the advice is to call the care team. There are no sponsored placements.
+          </p>
+          <p>
+            <strong>The shop badge.</strong> The same rules are served as a public endpoint (<code>/api/check</code>) and a
+            two-line embed (<code>/badge.js</code>) that shows &ldquo;Gentle during treatment&rdquo;, &ldquo;Ask your care
+            team first&rdquo; or &ldquo;Not advised during treatment&rdquo; on a product page, with the reasons and sources
+            one tap away. Only the public ingredient text is sent.
           </p>
           <ul className="space-y-2">
             {RULES.map((r) => (
