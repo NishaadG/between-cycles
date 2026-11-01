@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowRight, FileText, FlaskConical, Ruler, Sparkles } from "lucide-react";
+import { ArrowRight, FileText, FlaskConical, Palette, Ruler, Sparkles, Store } from "lucide-react";
 import { Logo } from "@/components/Shell";
 import { Cite, Disclaimer } from "@/components/ui";
 import { getProfile, seedDemo } from "@/lib/store";
@@ -20,14 +20,25 @@ const FEATURES = [
     body: "Photos vary a little even when skin doesn't. A change is only flagged when it's bigger than your own photo-to-photo variation.",
   },
   {
+    icon: Palette,
+    title: "Honest about skin tone",
+    body: "Redness is harder to see on deeper skin. The app measures skin type once and says so plainly when a reading is less reliable.",
+  },
+  {
     icon: FlaskConical,
     title: "Is this product okay now?",
-    body: "Paste an ingredient list. Each flag is a fixed rule that cites published patient guidance.",
+    body: "Snap or paste an ingredient list, or browse real products that pass. Each flag is a fixed rule citing patient guidance.",
   },
   {
     icon: Sparkles,
-    title: "Prepare for hair loss",
-    body: "See shorter styles, hats, or no hair at all on your own face, before it happens.",
+    title: "Hair, tracked and previewed",
+    body: "Measure hair density each cycle, and see shorter styles or no hair at all on your own face, before it happens.",
+  },
+  {
+    icon: Store,
+    title: "For pharmacies and shops",
+    body: "Audit a whole shelf against the same rules. Only about 1 in 5 real products we checked passes.",
+    href: "/shelf",
   },
 ];
 
@@ -85,13 +96,24 @@ export default function Landing() {
         </section>
 
         <section className="grid gap-4 pb-12 sm:grid-cols-2">
-          {FEATURES.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="card p-5">
-              <Icon className="text-primary" size={22} />
-              <h2 className="mt-3 font-semibold">{title}</h2>
-              <p className="mt-1 text-sm leading-relaxed text-muted">{body}</p>
-            </div>
-          ))}
+          {FEATURES.map(({ icon: Icon, title, body, href }) => {
+            const inner = (
+              <>
+                <Icon className="text-primary" size={22} />
+                <h2 className="mt-3 font-semibold">{title}</h2>
+                <p className="mt-1 text-sm leading-relaxed text-muted">{body}</p>
+              </>
+            );
+            return href ? (
+              <Link key={title} href={href} className="card p-5 hover:border-primary">
+                {inner}
+              </Link>
+            ) : (
+              <div key={title} className="card p-5">
+                {inner}
+              </div>
+            );
+          })}
         </section>
 
         <section className="card mb-12 p-6">

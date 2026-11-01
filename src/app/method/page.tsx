@@ -6,6 +6,10 @@ import { RULES } from "@/lib/ingredients";
 import { SOURCES } from "@/lib/sources";
 import { MIN_BASELINE_SCANS, MIN_MDC, SYMPTOMS } from "@/lib/stats";
 import repeatability from "@/data/repeatability.json";
+import labelBench from "@/data/label-bench.json";
+import catalog from "@/data/products.json";
+import { auditCategory, type CatalogProduct } from "@/lib/catalog";
+import { summarizeBench, type BenchRow } from "@/lib/labelBench";
 
 export const metadata = { title: "How it works · Between Cycles" };
 
@@ -19,6 +23,10 @@ interface Session {
 
 export default function Method() {
   const sessions = repeatability.sessions as Session[];
+  const bench = summarizeBench(labelBench.results as BenchRow[]);
+  const audits = catalog.categories.map((c) => auditCategory(c.id, c.label, catalog.products as CatalogProduct[]));
+  const passing = audits.reduce((a, c) => a + c.ok, 0);
+  const pct = (x: number) => `${Math.round(x * 100)}%`;
   return (
     <div className="min-h-dvh">
       <header className="mx-auto flex max-w-3xl items-center justify-between px-4 py-5">
@@ -143,6 +151,33 @@ export default function Method() {
           <p>A rise in a watched concern beyond the normal range, or milder symptoms, become “Worth mentioning to your care team”.</p>
         </Section>
 
+        <Section title="Skin tone and redness" id="skin-tone">
+          <p>
+            Redness is harder to see on deeper skin, for clinicians and for cameras, and treatment rash on darker skin is
+            under-documented. So on the first baseline photo the app runs the YouCam AI Fitzpatrick Skin Type API once (types
+            I–VI). For types V and VI, every result carries a plain note that a steady redness score doesn&apos;t rule out a
+            rash, and that symptom answers count as much as the photo. The thresholds themselves are not changed: we have no
+            data to justify a different number, so we say so instead of inventing one.
+          </p>
+          <p>
+            Skin type is used only for this note. It is stored on the device, never used to rank or compare people, and the
+            app works without it.
+          </p>
+          <Cite ids={["skintone", "vendor"]} />
+        </Section>
+
+        <Section title="Hair density" id="hair">
+          <p>
+            Hair checks use the YouCam AI Hair Density Detection API, which returns one of four documented density levels and a
+            continuous score from a photo taken with the head lowered. The score&apos;s range isn&apos;t documented (in our tests a
+            “medium” photo scored 1.71 and a “low” one 0.92), so the level is the headline and the score only draws the trend. The first two checks set a starting point; later checks are
+            compared with it. We haven&apos;t measured this score&apos;s photo-to-photo noise yet, so moves under 0.5 are shown as
+            steady. This is most useful for people using scalp cooling, which preserved hair in about half of patients in a
+            randomised trial.
+          </p>
+          <Cite ids={["scalpcool", "vendor"]} />
+        </Section>
+
         <Section title="Product checks">
           <p>
             The ingredient checker is a fixed list of {RULES.length} rules, not an AI model, so the same label always gets the
@@ -150,12 +185,52 @@ export default function Method() {
             transcription, and the rules decide. Fatty alcohols (cetyl, cetearyl), benzyl alcohol and sunscreen salicylates are deliberately excluded
             from the alcohol and acid rules.
           </p>
+          <p>
+            The same rules run over a snapshot of real products from Open Beauty Facts, an open database (ODbL), to make the
+            treatment-friendly picks and the shelf audit. Before publishing the numbers we listed every ingredient each rule
+            matched across the catalogue and removed two false positives this found (phenoxyethanol read as an alcohol, urea
+            preservatives read as moisturisers). Both are now unit tests.
+          </p>
           <ul className="space-y-2">
             {RULES.map((r) => (
               <li key={r.id} className="text-sm">
                 <strong>{r.name}</strong> ({r.verdict}): {r.reason} <Cite ids={r.sources} />
               </li>
             ))}
+          </ul>
+        </Section>
+
+        <Section title="Measured: label reading and the catalogue" id="measured">
+          <p>
+            <strong>Label photos.</strong> We sent {bench.n} real photos filed as ingredient panels on Open Beauty Facts through the
+            app&apos;s own label route ({labelBench.ranAt}) and compared the result with the human transcription on Open Beauty
+            Facts, using the same parser and rules as the app.
+          </p>
+          <div className="card grid grid-cols-2 gap-4 p-4 text-sm sm:grid-cols-4">
+            <Stat value={`${bench.sameVerdict}/${bench.n - bench.refused}`} label="same verdict and flags as the human transcription" />
+            <Stat value={pct(bench.recall)} label="of listed ingredients recovered (avg)" />
+            <Stat value={pct(bench.precision)} label="of read ingredients that were on the label (avg)" />
+            <Stat value={`${(bench.medianMs / 1000).toFixed(1)} s`} label={`median time, slowest ${(bench.maxMs / 1000).toFixed(1)} s`} />
+          </div>
+          <p className="text-sm text-muted">
+            {bench.refused} of {bench.n} photos returned no list: in our run that photo showed marketing text, not the
+            ingredient panel, so declining was correct. Twelve labels is a small sample; the script to repeat it is{" "}
+            <code>scripts/label-bench.mjs</code>.
+          </p>
+          <p>
+            <strong>Catalogue.</strong> Across {catalog.products.length.toLocaleString()} real products in eight categories,{" "}
+            {passing} ({pct(passing / catalog.products.length)}) have nothing on the watch-list. Fragrance is the most common
+            reason in every category.
+          </p>
+        </Section>
+
+        <Section title="Measured vs curated">
+          <ul className="list-disc space-y-1.5 pl-5">
+            <li><strong>Measured by API:</strong> skin concern scores and masks, skin type, hair density, hairstyle previews.</li>
+            <li><strong>Computed by us, in code:</strong> baselines, MDC95 bands, change flags, product verdicts, catalogue pass rates.</li>
+            <li><strong>Curated by us:</strong> the ingredient rules and symptom list, each tied to the sources below.</li>
+            <li><strong>Read by AI:</strong> ingredient lists transcribed from label photos, always shown for the person to check.</li>
+            <li><strong>Synthetic:</strong> the demo journey (labelled “Demo data”) and the example ingredient lists.</li>
           </ul>
         </Section>
 
@@ -186,9 +261,18 @@ export default function Method() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Stat({ value, label }: { value: string; label: string }) {
   return (
-    <section className="space-y-3">
+    <div>
+      <p className="font-serif text-2xl font-semibold">{value}</p>
+      <p className="text-xs text-muted">{label}</p>
+    </div>
+  );
+}
+
+function Section({ title, id, children }: { title: string; id?: string; children: React.ReactNode }) {
+  return (
+    <section id={id} className="scroll-mt-20 space-y-3">
       <h2 className="font-serif text-2xl font-semibold">{title}</h2>
       {children}
     </section>
