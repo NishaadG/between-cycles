@@ -23,6 +23,15 @@ describe("checkIngredients", () => {
     expect(ids("Benzyl Alcohol")).not.toContain("drying-alcohol");
   });
 
+  it("does not treat phenoxyethanol as drying, even when split oddly", () => {
+    expect(ids("Aqua, Phenoxy - Ethanol, Phenoxyethanol")).not.toContain("drying-alcohol");
+  });
+
+  it("does not count urea preservatives as moisturisers", () => {
+    expect(ids("Aqua, Diazolidinyl Urea, Imidazolidinyl Urea")).not.toContain("humectant");
+    expect(ids("Aqua, Urea")).toContain("humectant");
+  });
+
   it("does not confuse sunscreen salicylates with salicylic acid", () => {
     const found = ids("Ethylhexyl Salicylate, Homosalate");
     expect(found).not.toContain("salicylic");

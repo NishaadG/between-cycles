@@ -155,7 +155,9 @@ export function checkIngredients(text: string): CheckResult {
       // Salicylates used as sunscreen filters are not the acne acid.
       if (rule.id === "salicylic" && /ethylhexyl salicylate|homosalate|octisalate/.test(ing)) return false;
       // "Benzyl alcohol" is a preservative, not a drying alcohol.
-      if (rule.id === "drying-alcohol" && /benzyl alcohol/.test(ing)) return false;
+      if (rule.id === "drying-alcohol" && /benzyl alcohol|phenoxy/.test(ing)) return false;
+      // Imidazolidinyl / diazolidinyl urea are preservatives, not moisturisers.
+      if (rule.id === "humectant" && /(imidazolidinyl|diazolidinyl) urea/.test(ing)) return false;
       return rule.patterns.some((p) => p.test(ing));
     });
     if (matched.length) findings.push({ rule, matched });
