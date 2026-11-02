@@ -43,7 +43,7 @@ export default function DemoStore() {
   const label = Object.fromEntries(snapshot.categories.map((c) => [c.id, c.label]));
 
   return (
-    <div className="min-h-screen bg-[#f6f5f2] text-[#1f2a2e]">
+    <div className="min-h-screen bg-[#f6f5f2] text-[#1f2a2e] dark:bg-[#0e1211] dark:text-[#eef1f0]">
       <div className="bg-[#1f2a2e] px-4 py-2 text-xs text-white">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-4 gap-y-1">
           <Link href="/shelf" className="inline-flex items-center gap-1 font-semibold">
@@ -56,12 +56,12 @@ export default function DemoStore() {
         </div>
       </div>
 
-      <header className="border-b border-black/10 bg-white px-4 py-4">
+      <header className="border-b border-black/10 bg-white px-4 py-4 dark:border-white/10 dark:bg-[#161b1a]">
         <div className="mx-auto flex max-w-5xl items-baseline justify-between gap-4">
           <p className="text-xl font-bold tracking-tight">
-            Example Pharmacy <span className="text-sm font-normal text-black/50">(fictional)</span>
+            Example Pharmacy <span className="text-sm font-normal text-black/50 dark:text-white/55">(fictional)</span>
           </p>
-          <nav className="hidden gap-5 text-sm text-black/60 sm:flex" aria-label="Demo shop sections">
+          <nav className="hidden gap-5 text-sm text-black/60 dark:text-white/55 sm:flex" aria-label="Demo shop sections">
             <span>Skincare</span>
             <span>Sun care</span>
             <span>Hands &amp; body</span>
@@ -71,24 +71,24 @@ export default function DemoStore() {
 
       <main className="mx-auto max-w-5xl px-4 py-8">
         <h1 className="text-2xl font-bold tracking-tight">Skincare</h1>
-        <p className="mt-1 text-sm text-black/60">
+        <p className="mt-1 text-sm text-black/60 dark:text-white/55">
           Each product shows a badge for customers in cancer treatment. Tap <em>Why?</em> on any badge.
         </p>
 
         <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((p) => (
-            <li key={p.code} className="flex min-w-0 flex-col rounded-2xl border border-black/10 bg-white p-4">
+            <li key={p.code} className="flex min-w-0 flex-col rounded-2xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-[#161b1a]">
               {p.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={p.image} alt="" className="h-40 w-full rounded-xl object-contain" />
+                <img src={p.image} alt="" className="h-40 w-full rounded-xl bg-white object-contain" />
               ) : (
                 <span className="h-40 w-full rounded-xl bg-black/5" />
               )}
-              <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-black/50">{p.brand}</p>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-black/50 dark:text-white/55">{p.brand}</p>
               <h2 className="font-semibold leading-snug">{p.name}</h2>
-              <p className="text-xs text-black/50">{label[p.category]}</p>
+              <p className="text-xs text-black/50 dark:text-white/55">{label[p.category]}</p>
               <div className="mt-3 min-h-9" data-gentle-badge="" data-ingredients-from={`#ing-${p.code}`} />
-              <details className="mt-3 text-xs text-black/60">
+              <details className="mt-3 text-xs text-black/60 dark:text-white/55">
                 <summary className="cursor-pointer select-none">Ingredients</summary>
                 <p id={`ing-${p.code}`} className="mt-1 leading-relaxed">
                   {p.ingredients}
@@ -98,7 +98,7 @@ export default function DemoStore() {
                 href={productUrl(p.code)}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-auto pt-3 text-xs text-black/50 underline underline-offset-2"
+                className="mt-auto pt-3 text-xs text-black/50 dark:text-white/55 underline underline-offset-2"
               >
                 Product data on Open Beauty Facts
               </a>
@@ -106,28 +106,28 @@ export default function DemoStore() {
           ))}
         </ul>
 
-        <section className="mt-12 rounded-2xl border border-black/10 bg-white p-5">
+        <section className="mt-12 rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#161b1a]">
           <h2 className="text-lg font-bold">Add the badge to your shop</h2>
-          <p className="mt-1 text-sm text-black/60">
+          <p className="mt-1 text-sm text-black/60 dark:text-white/55">
             Two lines on a product page. The script reads the ingredient list already on the page and draws the badge in a
             shadow DOM, so it can&apos;t clash with your styles. No key, no cookies, no tracking: only the public ingredient
             text is sent.
           </p>
           <CopyCode code={EMBED} />
           <h3 className="mt-6 font-semibold">Or call the API from your own catalogue</h3>
-          <p className="mt-1 text-sm text-black/60">
+          <p className="mt-1 text-sm text-black/60 dark:text-white/55">
             Open to any origin and cached at the edge. Use it to badge a whole range at import time, or to build a
             &ldquo;gentle during treatment&rdquo; filter.
           </p>
           <CopyCode code={API} />
-          <p className="mt-4 flex gap-2 text-xs text-black/60">
+          <p className="mt-4 flex gap-2 text-xs text-black/60 dark:text-white/55">
             <Info size={14} className="mt-0.5 shrink-0" />
             The badge uses the same ten cited rules as the app. A green badge means nothing on the watch-list, not a medical
             endorsement. Rules and sources: <Link href="/method#products" className="underline">method page</Link>.
           </p>
         </section>
 
-        <p className="mt-6 text-xs text-black/50">
+        <p className="mt-6 text-xs text-black/50 dark:text-white/55">
           Product data:{" "}
           <a href={snapshot.url} className="underline" target="_blank" rel="noreferrer">
             {snapshot.source}
