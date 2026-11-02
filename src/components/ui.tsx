@@ -4,9 +4,9 @@ import type { Guidance } from "@/lib/stats";
 
 export function PageTitle({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <div className="mb-6">
-      <h1 className="font-serif text-3xl font-semibold tracking-tight">{title}</h1>
-      {subtitle && <p className="mt-1.5 text-muted">{subtitle}</p>}
+    <div className="mb-8">
+      <h1 className="text-[2rem] font-semibold leading-tight tracking-[-0.03em]">{title}</h1>
+      {subtitle && <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted">{subtitle}</p>}
     </div>
   );
 }

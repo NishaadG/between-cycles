@@ -37,7 +37,7 @@ export default function Method() {
       </header>
       <main className="mx-auto max-w-3xl space-y-8 px-4 pb-16 leading-relaxed">
         <div>
-          <h1 className="font-serif text-4xl font-semibold tracking-tight">How it works, and where it stops</h1>
+          <h1 className="text-[2rem] font-semibold leading-tight tracking-[-0.035em] sm:text-4xl">How it works, and where it stops</h1>
           <p className="mt-3 text-muted">
             Between Cycles is a measuring tool, not a diagnostic one. This page lists exactly what it measures, how it
             decides something has changed, what is backed by evidence and what is not.
@@ -277,7 +277,7 @@ export default function Method() {
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div>
-      <p className="font-serif text-2xl font-semibold">{value}</p>
+      <p className="num text-3xl font-semibold">{value}</p>
       <p className="text-xs text-muted">{label}</p>
     </div>
   );

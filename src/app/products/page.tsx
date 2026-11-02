@@ -114,7 +114,7 @@ export default function Products() {
 
       {result && (
         <div className="mt-5 space-y-4">
-          <div className={`rounded-[1.25rem] p-5 ${OVERALL[result.overall].cls}`}>
+          <div className={`rounded-2xl border border-black/5 p-6 ${OVERALL[result.overall].cls}`}>
             <h2 className="font-serif text-xl font-semibold">{OVERALL[result.overall].title}</h2>
             <p className="mt-1 text-sm">
               Checked {result.ingredients.length} ingredients. Anything not listed below isn&apos;t on our watch-list, which
@@ -204,7 +204,7 @@ function Picks({ onCheck }: { onCheck: (ingredients: string) => void }) {
             key={c.audit.id}
             onClick={() => setCat(c.audit.id)}
             className={`shrink-0 rounded-full px-3 py-1.5 text-sm ${
-              c.audit.id === cat ? "bg-primary font-semibold text-white" : "bg-surface-2 text-muted hover:text-ink"
+              c.audit.id === cat ? "bg-ink font-medium text-bg" : "border border-line bg-surface text-muted hover:text-ink"
             }`}
           >
             {c.audit.label}

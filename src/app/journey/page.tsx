@@ -64,18 +64,23 @@ export default function Journey() {
         })}
       </div>
 
-      <h2 className="mb-3 mt-8 font-semibold">All scans</h2>
-      <ul className="space-y-2">
+      <h2 className="mb-3 mt-10 text-lg font-semibold">All scans</h2>
+      <ul className="card divide-y divide-line overflow-hidden">
         {[...j.scans].reverse().map((s) => {
           const ci = j.checkIns.find((c) => c.scan.id === s.id);
           const pos = cyclePosition(new Date(s.takenAt), start, profile.cycleLength);
           return (
-            <li key={s.id} className="card flex items-center gap-3 p-3">
+            <li key={s.id} className="flex items-center gap-3 px-4 py-3 transition hover:bg-surface-2/60">
               {s.photo ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={s.photo} alt="" className="size-12 rounded-xl object-cover" />
+                <img src={s.photo} alt="" className="size-11 rounded-lg object-cover" />
               ) : (
-                <div className="size-12 rounded-xl bg-surface-2" />
+                <div className="grid size-11 shrink-0 place-items-center rounded-lg bg-surface-2 leading-none" aria-hidden>
+                  <span className="num text-[15px] font-semibold">{new Date(s.takenAt).getDate()}</span>
+                  <span className="-mt-2 text-[9px] uppercase tracking-wide text-muted">
+                    {new Date(s.takenAt).toLocaleDateString(undefined, { month: "short" })}
+                  </span>
+                </div>
               )}
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">

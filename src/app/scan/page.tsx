@@ -239,7 +239,7 @@ function Result({ scan, all, skinType }: { scan: Scan; all: Scan[]; skinType?: S
       )}
 
       {g && (
-        <div className={`rounded-[1.25rem] p-5 ${g.level === "urgent" ? "bg-urgent-soft" : g.level === "discuss" ? "bg-discuss-soft" : "bg-steady-soft"}`}>
+        <div className={`rounded-2xl border border-black/5 p-6 ${g.level === "urgent" ? "bg-urgent-soft" : g.level === "discuss" ? "bg-discuss-soft" : "bg-steady-soft"}`}>
           <h2 className="font-serif text-xl font-semibold">{guidanceTitle(g.level)}</h2>
           {g.reasons.length > 0 && (
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">

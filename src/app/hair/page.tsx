@@ -77,7 +77,7 @@ export default function HairPage() {
           ) : (
             <>
               <section
-                className={`rounded-[1.25rem] p-5 ${summary?.status === "thinner" ? "bg-discuss-soft" : "bg-steady-soft"}`}
+                className={`rounded-2xl border border-black/5 p-6 ${summary?.status === "thinner" ? "bg-discuss-soft" : "bg-steady-soft"}`}
               >
                 <p className="text-sm opacity-80">Latest hair density</p>
                 <p className="mt-1 font-serif text-3xl font-semibold">

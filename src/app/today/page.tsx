@@ -38,17 +38,17 @@ export default function Today() {
 
   return (
     <Shell profile={j.profile}>
-      <p className="text-sm text-muted">
+      <p className="eyebrow">
         {pos ? `Cycle ${pos.cycle} · Day ${pos.day}` : "Before treatment"} ·{" "}
         {new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}
       </p>
-      <h1 className="mt-1 font-serif text-3xl font-semibold tracking-tight">
+      <h1 className="mt-2 text-[2rem] font-semibold tracking-[-0.035em]">
         {j.profile.name ? `Hi ${j.profile.name.split(" ")[0]}` : "Hello"}
       </h1>
 
       {needBaseline ? (
         <section className="card mt-6 p-5">
-          <h2 className="font-serif text-xl font-semibold">Build your baseline</h2>
+          <h2 className="text-xl font-semibold">Build your baseline</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">
             Take {MIN_BASELINE_SCANS} scans in the same spot and light, ideally before treatment starts. They set your
             normal, and show how much your scores move between photos when nothing has changed.
@@ -68,7 +68,7 @@ export default function Today() {
       ) : (
         <>
           <section
-            className={`mt-6 rounded-[1.25rem] p-5 ${
+            className={`mt-6 rounded-2xl border border-black/5 p-6 ${
               latest?.guidance.level === "urgent"
                 ? "bg-urgent-soft"
                 : latest?.guidance.level === "discuss"
@@ -78,11 +78,14 @@ export default function Today() {
           >
             {latest ? (
               <>
-                <h2 className="font-serif text-2xl font-semibold">{guidanceTitle(latest.guidance.level)}</h2>
+                <h2 className="text-2xl font-semibold tracking-[-0.03em]">{guidanceTitle(latest.guidance.level)}</h2>
                 {latest.guidance.reasons.length > 0 ? (
-                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+                  <ul className="mt-4 divide-y divide-black/5 border-y border-black/5 text-[14px]">
                     {latest.guidance.reasons.map((r) => (
-                      <li key={r}>{r}</li>
+                      <li key={r} className="flex gap-2.5 py-2">
+                        <span className="mt-[7px] size-1.5 shrink-0 rounded-full bg-current opacity-60" aria-hidden />
+                        {r}
+                      </li>
                     ))}
                   </ul>
                 ) : (
@@ -107,7 +110,7 @@ export default function Today() {
               </>
             ) : (
               <>
-                <h2 className="font-serif text-2xl font-semibold">Baseline ready</h2>
+                <h2 className="text-2xl font-semibold tracking-[-0.03em]">Baseline ready</h2>
                 <p className="mt-2 text-sm">Check in every few days, or whenever your skin feels different.</p>
               </>
             )}
@@ -118,7 +121,7 @@ export default function Today() {
 
           {latest?.changes && (
             <section className="mt-6">
-              <h2 className="mb-3 font-semibold">Since your baseline</h2>
+              <h2 className="mb-3 text-lg font-semibold">Since your baseline</h2>
               <div className="grid grid-cols-2 gap-3">
                 {WATCHED.map((w) => (
                   <ChangeTile key={w.id} change={latest.changes!.find((c) => c.id === w.id)!} />
@@ -188,13 +191,15 @@ function ChangeTile({ change }: { change: Change }) {
     change.status === "worse" ? "text-discuss" : change.status === "better" ? "text-steady" : "text-muted";
   return (
     <div className="card p-4">
-      <p className="text-sm font-medium">{info.label}</p>
-      <p className={`mt-1 flex items-center gap-1 text-lg font-semibold ${tone}`}>
-        <Icon size={18} />
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[13px] font-medium text-muted">{info.label}</p>
+        <Icon size={16} className={tone} />
+      </div>
+      <p className={`num mt-2 text-3xl font-semibold ${change.status === "stable" ? "text-ink" : tone}`}>
         {change.delta > 0 ? "+" : ""}
         {change.delta}
       </p>
-      <p className="text-xs text-muted">
+      <p className="mt-0.5 text-xs text-muted">
         {change.status === "stable" ? "within your normal range" : change.status === "worse" ? "above your normal" : "better than baseline"}
       </p>
     </div>

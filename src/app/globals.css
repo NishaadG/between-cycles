@@ -1,48 +1,56 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #fbf7f2;
+  --bg: #f7f7f5;
   --surface: #ffffff;
-  --surface-2: #f4eee6;
-  --ink: #1f2a2e;
-  --muted: #5d6b70;
-  --line: #e8e0d6;
-  --primary: #2f6f6a;
-  --primary-soft: #dcebe8;
+  --surface-2: #f1f1ee;
+  --ink: #111816;
+  --muted: #5f6b68;
+  --line: #e6e6e1;
+  --primary: #0d6b5b;
+  --primary-soft: #e3f1ed;
   --on-primary: #ffffff;
-  --steady: #3e7c59;
-  --steady-soft: #e1f0e6;
-  --discuss: #b8662e;
-  --discuss-soft: #fbeadb;
-  --urgent: #b3261e;
-  --urgent-soft: #fbe2df;
-  --chart-1: #2f6f6a;
-  --chart-2: #c4553b;
-  --chart-3: #6b5ca5;
-  --chart-4: #b08a2e;
+  --button: #111816;
+  --on-button: #ffffff;
+  --steady: #177245;
+  --steady-soft: #e8f5ec;
+  --discuss: #b25309;
+  --discuss-soft: #fdf1e3;
+  --urgent: #b42318;
+  --urgent-soft: #fdecea;
+  --shadow: 0 1px 2px rgb(17 24 22 / 0.04), 0 2px 8px -2px rgb(17 24 22 / 0.06);
+  --shadow-lg: 0 1px 2px rgb(17 24 22 / 0.05), 0 12px 32px -8px rgb(17 24 22 / 0.12);
+  --chart-1: #0d6b5b;
+  --chart-2: #d1492e;
+  --chart-3: #5b4fc4;
+  --chart-4: #b7861b;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #141a1c;
-    --surface: #1c2427;
-    --surface-2: #232d31;
-    --ink: #eef2f1;
-    --muted: #a3b0b3;
-    --line: #2f3a3e;
-    --primary: #6fb7ae;
-    --primary-soft: #1f3836;
-    --on-primary: #0f1a19;
-    --steady: #7cc39a;
-    --steady-soft: #1d3326;
-    --discuss: #e7a06b;
-    --discuss-soft: #3a2a1d;
-    --urgent: #f08a80;
-    --urgent-soft: #3d1f1c;
-    --chart-1: #6fb7ae;
-    --chart-2: #ec8f76;
-    --chart-3: #a99be0;
-    --chart-4: #d9b65c;
+    --bg: #0e1211;
+    --surface: #161b1a;
+    --surface-2: #1d2322;
+    --ink: #eef1f0;
+    --muted: #9aa5a2;
+    --line: #262d2b;
+    --primary: #5cc3ad;
+    --primary-soft: #16302a;
+    --on-primary: #08110f;
+    --button: #eef1f0;
+    --on-button: #0e1211;
+    --steady: #6fcf97;
+    --steady-soft: #142a1d;
+    --discuss: #f0a45c;
+    --discuss-soft: #33240f;
+    --urgent: #f3877c;
+    --urgent-soft: #3a1714;
+    --shadow: 0 0 0 1px rgb(255 255 255 / 0.04);
+    --shadow-lg: 0 0 0 1px rgb(255 255 255 / 0.06), 0 12px 32px -8px rgb(0 0 0 / 0.5);
+    --chart-1: #5cc3ad;
+    --chart-2: #f08a6c;
+    --chart-3: #a69cf0;
+    --chart-4: #e0b64e;
   }
 }
 
@@ -62,19 +70,55 @@
   --color-discuss-soft: var(--discuss-soft);
   --color-urgent: var(--urgent);
   --color-urgent-soft: var(--urgent-soft);
-  --font-sans: var(--font-inter);
-  --font-serif: var(--font-fraunces);
+  --font-sans: var(--font-geist);
+  --font-serif: var(--font-geist);
+  --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--bg);
   color: var(--ink);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Headings: one family, tight and confident. */
+h1, h2, h3, .font-serif {
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+
+.tabular-nums, .num {
+  font-variant-numeric: tabular-nums;
+}
+.num {
+  letter-spacing: -0.03em;
+}
+
+.eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 1.25rem;
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
+}
+a.card {
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+}
+a.card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+  border-color: var(--line);
 }
 
 .btn {
@@ -82,11 +126,12 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 999px;
-  padding: 0.7rem 1.25rem;
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: opacity 0.15s, transform 0.15s;
+  border-radius: 0.7rem;
+  padding: 0.68rem 1.1rem;
+  font-weight: 550;
+  font-size: 0.92rem;
+  letter-spacing: -0.005em;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.1s, opacity 0.15s;
 }
 .btn:active {
   transform: scale(0.98);
@@ -96,26 +141,53 @@ body {
   pointer-events: none;
 }
 .btn-primary {
-  background: var(--primary);
-  color: var(--on-primary);
+  background: var(--button);
+  color: var(--on-button);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+.btn-primary:hover {
+  opacity: 0.9;
 }
 .btn-ghost {
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--ink);
+  box-shadow: var(--shadow);
+}
+.btn-ghost:hover {
+  background: var(--surface-2);
 }
 
 .field {
   width: 100%;
   border: 1px solid var(--line);
   background: var(--surface);
-  border-radius: 0.75rem;
+  border-radius: 0.7rem;
   padding: 0.65rem 0.8rem;
   color: var(--ink);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 .field:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+:focus-visible {
   outline: 2px solid var(--primary);
-  outline-offset: 1px;
+  outline-offset: 2px;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.rise {
+  animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rise { animation: none; }
+  a.card:hover { transform: none; }
 }
 
 @media print {
@@ -129,5 +201,6 @@ body {
   .card {
     break-inside: avoid;
     border-color: #ccc;
+    box-shadow: none;
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ExternalLink, Sparkles } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import { Cite } from "@/components/ui";
 import { productUrl } from "@/lib/catalog";
 import { recommend } from "@/lib/recommend";
@@ -24,41 +24,45 @@ export function ForYou({ changes, symptoms, level }: { changes: Change[] | null;
 
   return (
     <section className="mt-8" aria-labelledby="for-you">
-      <h2 id="for-you" className="flex items-center gap-2 font-serif text-2xl font-semibold">
-        <Sparkles size={20} className="text-primary" /> Picked for your skin today
+      <p className="eyebrow">For this check-in</p>
+      <h2 id="for-you" className="mt-1.5 text-2xl font-semibold tracking-[-0.03em]">
+        Picked for your skin today
       </h2>
-      <p className="mt-1 text-sm text-muted">
+      <p className="mt-1.5 text-sm text-muted">
         Based on what changed at this check-in. Real products that pass every ingredient rule. No ads, no affiliate links.
       </p>
 
       <div className="mt-4 space-y-4">
         {needs.map((n) => (
-          <div key={n.id} className="card p-4">
-            <div className="flex flex-wrap gap-1.5">
-              {n.because.map((b) => (
-                <span key={b} className="rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-medium text-primary">
-                  {b}
-                </span>
-              ))}
+          <div key={n.id} className="card overflow-hidden">
+            <div className="p-5 pb-4">
+              <div className="flex flex-wrap gap-1.5">
+                {n.because.map((b) => (
+                  <span key={b} className="inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-0.5 text-xs font-medium text-muted">
+                    <span className="size-1.5 rounded-full bg-discuss" aria-hidden />
+                    {b}
+                  </span>
+                ))}
+              </div>
+              <h3 className="mt-3 text-lg font-semibold tracking-[-0.02em]">{n.title}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-muted">
+                {n.advice} <Cite ids={n.sources} />
+              </p>
             </div>
-            <h3 className="mt-2 font-semibold">{n.title}</h3>
-            <p className="mt-1 text-sm text-muted">
-              {n.advice} <Cite ids={n.sources} />
-            </p>
-            <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <ul className="-mt-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-5 [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible">
               {n.items.map((p) => (
-                <li key={p.code} className="flex min-w-0 gap-3 rounded-xl bg-surface-2 p-2.5 sm:flex-col sm:gap-2">
+                <li key={p.code} className="flex w-[72%] shrink-0 snap-start flex-col gap-2 rounded-xl border border-line bg-surface p-3 sm:w-auto">
                   {p.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.image} alt="" className="h-14 w-14 shrink-0 rounded-lg bg-white object-contain sm:h-20 sm:w-full" />
+                    <img src={p.image} alt="" className="h-28 w-full rounded-lg bg-white object-contain" />
                   ) : (
-                    <span className="h-14 w-14 shrink-0 rounded-lg bg-white sm:h-20 sm:w-full" />
+                    <span className="h-28 w-full rounded-lg bg-surface-2" />
                   )}
-                  <div className="min-w-0 flex-1">
+                  <div className="flex min-w-0 flex-1 flex-col">
                     <p className="line-clamp-2 text-sm font-semibold leading-snug">{p.name}</p>
                     <p className="truncate text-xs text-muted">{p.brand || "Unknown brand"}</p>
                     <p className="mt-1 text-xs text-steady">{p.why}</p>
-                    <div className="mt-1.5 flex flex-wrap gap-x-3 text-xs">
+                    <div className="mt-auto flex flex-wrap gap-x-3 pt-2 text-xs">
                       <Link href={`/products?code=${encodeURIComponent(p.code)}`} className="font-medium text-primary">
                         See the check
                       </Link>

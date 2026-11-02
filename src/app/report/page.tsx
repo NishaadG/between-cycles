@@ -50,7 +50,7 @@ export default function Report() {
   if (!j.profile || !j.baseline) {
     return (
       <Shell profile={j.profile}>
-        <h1 className="font-serif text-3xl font-semibold">Care-team summary</h1>
+        <h1 className="text-[2rem] font-semibold tracking-[-0.035em]">Care-team summary</h1>
         <div className="card mt-6 p-6 text-center">
           <p className="text-muted">The summary needs a finished baseline (3 scans) first.</p>
           <Link href="/today" className="btn btn-primary mt-4">
