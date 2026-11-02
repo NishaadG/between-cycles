@@ -182,7 +182,7 @@ export default function Landing() {
         </section>
 
         {/* Shops */}
-        <section className="bg-[#111816] text-[#eef1f0]">
+        <section className="border-y border-white/10 bg-[#111816] text-[#eef1f0]">
           <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 md:grid-cols-2">
             <div>
               <p className="eyebrow !text-[#9aa5a2]">For pharmacies and shops</p>
