@@ -5,6 +5,11 @@
 // Usage: node scripts/repeatability.mjs <folder> [<folder> ...]
 // Each folder is one session; put a conditions.txt inside to describe it.
 // Results are written to src/data/repeatability.json.
+//
+// CROP="left,top,width,height" (fractions of the photo) applies one fixed
+// crop to every photo, for photos taken further away than the in-app
+// camera guide allows. The same crop is used for every photo in the run
+// and recorded in the results, so it can't favour one photo over another.
 
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -13,6 +18,7 @@ import sharp from "sharp";
 const API = process.env.APP_URL || "http://localhost:3210";
 const WATCHED = ["redness", "acne", "moisture", "age_spot"];
 const ALL = [...WATCHED, "texture", "oiliness", "radiance", "dark_circle_v2"];
+const CROP = process.env.CROP ? process.env.CROP.split(",").map(Number) : null;
 
 const sd = (xs) => {
   const m = xs.reduce((a, b) => a + b, 0) / xs.length;
@@ -22,7 +28,15 @@ const r1 = (x) => Math.round(x * 10) / 10;
 
 async function analyze(file) {
   // Same preparation as the app: upright, long side 1600, JPEG.
-  const jpeg = await sharp(await readFile(file)).rotate().resize(1600, 1600, { fit: "inside" }).jpeg({ quality: 92 }).toBuffer();
+  let buf = await sharp(await readFile(file)).rotate().toBuffer();
+  if (CROP) {
+    const { width, height } = await sharp(buf).metadata();
+    const [l, t, w, h] = CROP;
+    buf = await sharp(buf)
+      .extract({ left: Math.round(l * width), top: Math.round(t * height), width: Math.round(w * width), height: Math.round(h * height) })
+      .toBuffer();
+  }
+  const jpeg = await sharp(buf).resize(1600, 1600, { fit: "inside" }).jpeg({ quality: 92 }).toBuffer();
   const form = new FormData();
   form.append("photo", new Blob([jpeg], { type: "image/jpeg" }), "scan.jpg");
   const res = await fetch(`${API}/api/skin`, { method: "POST", body: form });
@@ -52,8 +66,16 @@ for (const dir of process.argv.slice(2)) {
   sessions.push({ label: path.basename(dir), n: levels.length, conditions, sd: sdOf, mdc: mdcOf, levels });
 }
 
+if (!sessions.length) {
+  console.error("No session had 2 or more analysed photos; results file left unchanged.");
+  process.exit(1);
+}
 await writeFile(
   "src/data/repeatability.json",
-  JSON.stringify({ status: "measured", measuredAt: new Date().toISOString().slice(0, 10), sessions }, null, 2) + "\n",
+  JSON.stringify(
+    { status: "measured", measuredAt: new Date().toISOString().slice(0, 10), crop: CROP ?? undefined, sessions },
+    null,
+    2,
+  ) + "\n",
 );
 console.table(sessions.map((s) => ({ session: s.label, n: s.n, ...Object.fromEntries(WATCHED.map((id) => [id, `${s.sd[id]} / ${s.mdc[id]}`])) })));

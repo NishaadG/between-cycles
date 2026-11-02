@@ -19,6 +19,7 @@ interface Session {
   conditions: string;
   sd: Record<string, number>;
   mdc: Record<string, number>;
+  levels: Record<string, number>[];
 }
 
 export default function Method() {
@@ -118,20 +119,21 @@ export default function Method() {
                 <tbody>
                   {sessions.map((s) => (
                     <tr key={s.label} className="border-t border-line">
-                      <td className="py-2">
-                        {s.label}
+                      <td className="py-2 pr-3">
+                        {SESSION_NAME[s.label] ?? s.label}
                         <div className="text-xs text-muted">{s.conditions}</div>
                       </td>
                       <td className="py-2">{s.n}</td>
                       {CONCERNS.filter((c) => c.watched).map((c) => (
                         <td key={c.id} className="py-2 text-right tabular-nums">
-                          {s.sd[c.id]} / {s.mdc[c.id]}
+                          {allZero(s, c.id) ? "0 on every photo*" : `${s.sd[c.id]} / ${s.mdc[c.id]}`}
                         </td>
                       ))}
                     </tr>
                   ))}
                 </tbody>
               </table>
+              <RepeatabilityNotes sessions={sessions} />
             </div>
           ) : (
             <p className="text-muted">Repeatability runs are in progress; results will be published here.</p>
@@ -240,7 +242,7 @@ export default function Method() {
         <Section title="Measured vs curated">
           <ul className="list-disc space-y-1.5 pl-5">
             <li><strong>Measured by API:</strong> skin concern scores and masks, skin type, hair density, hairstyle previews.</li>
-            <li><strong>Computed by us, in code:</strong> baselines, MDC95 bands, change flags, product verdicts, catalogue pass rates.</li>
+            <li><strong>Computed by us, in code:</strong> baselines, MDC95 bands, change flags, product verdicts, catalogue pass rates, product suggestions, shop badges.</li>
             <li><strong>Curated by us:</strong> the ingredient rules and symptom list, each tied to the sources below.</li>
             <li><strong>Read by AI:</strong> ingredient lists transcribed from label photos, always shown for the person to check.</li>
             <li><strong>Synthetic:</strong> the demo journey (labelled “Demo data”) and the example ingredient lists.</li>
@@ -289,5 +291,46 @@ function Section({ title, id, children }: { title: string; id?: string; children
       <h2 className="font-serif text-2xl font-semibold">{title}</h2>
       {children}
     </section>
+  );
+}
+
+const SESSION_NAME: Record<string, string> = { "same-light": "Same light", "varied-light": "Different light" };
+
+const allZero = (s: Session, id: string) => s.levels.every((l) => l[id] === 0);
+
+function RepeatabilityNotes({ sessions }: { sessions: Session[] }) {
+  const same = sessions.find((s) => s.label === "same-light");
+  const varied = sessions.find((s) => s.label === "varied-light");
+  return (
+    <div className="mt-3 space-y-3 text-sm">
+      <p className="text-xs text-muted">
+        SD = how much the score moved between photos of the same unchanged face; MDC = the 95% minimal detectable change
+        that follows from it (1.96 × √2 × SD). One person, photos taken minutes apart
+        {repeatability.crop ? ", each cropped identically to the face because they were taken from further away than the in-app camera guide allows" : ""}
+        . A small sample: it shows the size of the effect, not a population figure.
+      </p>
+      {same && (
+        <p>
+          <strong>In matched light the noise band is about {Math.max(same.mdc.acne, same.mdc.moisture)} points</strong>, close
+          to the {MIN_MDC}-point floor the app never goes below, so that floor is grounded in a measurement rather than a
+          guess.
+        </p>
+      )}
+      {same && varied && (
+        <p>
+          <strong>Change the light and the band widens</strong>: dryness from {same.mdc.moisture} to {varied.mdc.moisture}{" "}
+          points, bumps from {same.mdc.acne} to {varied.mdc.acne}. That is why every scan asks for the same spot and light,
+          and shows your first baseline photo faintly over the camera so each scan is framed the same way.
+        </p>
+      )}
+      <p className="text-xs text-muted">
+        * Redness read 0 on every photo of this face, so this run says nothing about redness noise; the app falls back to
+        the {MIN_MDC}-point minimum. A score stuck at zero is itself a reason for the{" "}
+        <a href="#skin-tone" className="underline">
+          skin-tone caution
+        </a>{" "}
+        below: a flat redness score doesn&apos;t prove there is no redness.
+      </p>
+    </div>
   );
 }

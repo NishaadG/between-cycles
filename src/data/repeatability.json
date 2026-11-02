@@ -1,5 +1,136 @@
 {
-  "status": "pending",
-  "note": "Filled in by scripts/repeatability.mjs from real API runs.",
-  "sessions": []
+  "status": "measured",
+  "measuredAt": "2026-11-02",
+  "crop": [
+    0.18,
+    0.08,
+    0.64,
+    0.6
+  ],
+  "sessions": [
+    {
+      "label": "same-light",
+      "n": 4,
+      "conditions": "Same spot and room light, phone at arm's length, 5 photos taken one after another (1 rejected by the API for head angle).",
+      "sd": {
+        "redness": 0,
+        "acne": 1.2,
+        "moisture": 1.2,
+        "age_spot": 0.5,
+        "texture": 0.3,
+        "oiliness": 0.4,
+        "radiance": 2.2,
+        "dark_circle_v2": 0.8
+      },
+      "mdc": {
+        "redness": 0,
+        "acne": 3.3,
+        "moisture": 3.3,
+        "age_spot": 1.4,
+        "texture": 0.8,
+        "oiliness": 1.1,
+        "radiance": 6.1,
+        "dark_circle_v2": 2.2
+      },
+      "levels": [
+        {
+          "redness": 0,
+          "acne": 0,
+          "moisture": 38.9,
+          "age_spot": 1.1,
+          "texture": 2.7,
+          "oiliness": 3.1,
+          "radiance": 11.8,
+          "dark_circle_v2": 44.8
+        },
+        {
+          "redness": 0,
+          "acne": 2.9,
+          "moisture": 39.7,
+          "age_spot": 1.1,
+          "texture": 2.8,
+          "oiliness": 4,
+          "radiance": 14.9,
+          "dark_circle_v2": 44.8
+        },
+        {
+          "redness": 0,
+          "acne": 1,
+          "moisture": 38.5,
+          "age_spot": 1.8,
+          "texture": 2.6,
+          "oiliness": 3.3,
+          "radiance": 10.3,
+          "dark_circle_v2": 44.3
+        },
+        {
+          "redness": 0,
+          "acne": 1,
+          "moisture": 36.8,
+          "age_spot": 0.6,
+          "texture": 3.2,
+          "oiliness": 3.4,
+          "radiance": 14.3,
+          "dark_circle_v2": 43.2
+        }
+      ]
+    },
+    {
+      "label": "varied-light",
+      "n": 3,
+      "conditions": "Three different lights, same session: near a window, under a ceiling light, and facing away from a bright light.",
+      "sd": {
+        "redness": 0,
+        "acne": 2.9,
+        "moisture": 5.1,
+        "age_spot": 2.2,
+        "texture": 0.5,
+        "oiliness": 7.7,
+        "radiance": 3.6,
+        "dark_circle_v2": 10.7
+      },
+      "mdc": {
+        "redness": 0,
+        "acne": 8,
+        "moisture": 14.1,
+        "age_spot": 6.1,
+        "texture": 1.4,
+        "oiliness": 21.3,
+        "radiance": 10,
+        "dark_circle_v2": 29.7
+      },
+      "levels": [
+        {
+          "redness": 0,
+          "acne": 1,
+          "moisture": 36.4,
+          "age_spot": 3.4,
+          "texture": 4.1,
+          "oiliness": 5.9,
+          "radiance": 13,
+          "dark_circle_v2": 57.4
+        },
+        {
+          "redness": 0,
+          "acne": 6.4,
+          "moisture": 38.1,
+          "age_spot": 2.4,
+          "texture": 3.4,
+          "oiliness": 21.2,
+          "radiance": 11,
+          "dark_circle_v2": 55.4
+        },
+        {
+          "redness": 0,
+          "acne": 2.1,
+          "moisture": 28.6,
+          "age_spot": 6.6,
+          "texture": 3.2,
+          "oiliness": 11.8,
+          "radiance": 17.9,
+          "dark_circle_v2": 37.9
+        }
+      ]
+    }
+  ]
 }
